@@ -1,4 +1,8 @@
 
+from tkinter import *
+
+from Global import *
+
 
 class Data(Frame):
 	def __init__(self, parent):

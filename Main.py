@@ -1,10 +1,10 @@
 
-from Window import Window
+from Window import Game
 
 
 
 def main():
-	window = Window()
+	window = Game()
 	window.tk.mainloop()
 
 

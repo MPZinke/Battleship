@@ -1,16 +1,25 @@
 
 
+from tkinter import *
+from random import randint
+
+from Global import *
+from Field import *
+from Data import *
+from Ships import *
+
+
 # shows player & data
 class Board(Frame):
-	def __init__(self, parent):
+	def __init__(self, tk, game):
 		# GUI
-		Frame.__init__(self, parent, bg="white", bd=16)
-		self.parent = parent
+		Frame.__init__(self, tk, bg="white", bd=16)
+		self.game = game
 		self.data = Data(self)
 		self.data.grid(row=0, column=1)
 
 		# game
-		self.ships = None
+		self.ships = []
 		self.shots = [[False] * FIELD_SIZE] * FIELD_SIZE
 
 
@@ -21,91 +30,91 @@ class Board(Frame):
 				self.field.buttons[x][y].bind("<Leave>", leave(x, y))
 
 
-	def add_ships_to_field(self, ships):
-		for x in range(len(ships)):
-			for point in ships[x].location.points:
-				self.field.buttons[point[0]][point[1]]["text"] = SHIP_CHAR
-
-
-	def change_button_symbol(self, location, symbol):
-		self.field.buttons[location[0]][location[1]]["text"] = symbol
-
-
-	def disable_button(self, x, y):
-		self.field.buttons[x][y]["state"] = "disable"
-
-
-	def disable_field_buttons(self):
-		for x in range(FIELD_SIZE):
-			for y in range(FIELD_SIZE):
-				self.field.buttons[x][y]["state"] = "disable"
-
-
-	def enable_field_buttons(self):
-		for x in range(FIELD_SIZE):
-			for y in range(FIELD_SIZE):
-				self.field.buttons[x][y]["state"] = "normal"
-
-
-	def set_field(self, callback):
-		self.field = Field(self)
+	def set_field(self, field, callback):
+		self.field = field(self, callback)
 		self.field.grid(row=0, column=0)
-
-
-class PlayerBoard(Board):
-	def __init__(self, parent):
-		self.orientation = False
 
 
 	# ——————————————————— SHIP PLACEMENT ———————————————————
 
-	def end_ship_placement(self):
-		self.select_ships = False
-		self.player_board.disable_field_buttons()
-		self.enemy_board.enable_field_buttons()
+	def any_ship_in_range(self, start, size):
+		for x in range(size):
+			location = [start[0], start[1]+x] if self.field.orientation else [start[0]+x, start[1]]
+			for y in range(len(self.ships)):
+				for z in range(len(self.ships[y].location.points)):
+					if location == self.ships[y].location.points[z]: return True
+		return False
 
 
-	def highlight_ship(self, x, y):
-		def function(e):
-			if not self.select_ships: return
-			points = points_in_range(self.orientation, [x, y], SHIP_SIZES[len(self.game.players[1].ships)])
-			color = "yellow" if len(points) == SHIP_SIZES[len(self.game.players[1].ships)] else "red"
-			for i in range(len(points)):
-				self.player_board.field.buttons[points[i][0]][points[i][1]]["background"] = color
-		return function
+	def points_in_range(self, start, size):
+		points = []
+		for x in range(size):
+			if (start[1] + x < FIELD_SIZE and self.field.orientation) or (start[0] + x < FIELD_SIZE and not self.field.orientation):
+				points.append([start[0], start[1]+x] if self.field.orientation else [start[0]+x, start[1]])
+		return points
 
 
-	def unhighlight_ship(self, x, y):
-		def function(e):
-			if not self.select_ships: return
-			points = points_in_range(self.orientation, [x, y], SHIP_SIZES[len(self.game.players[1].ships)])
-			for i in range(len(points)):
-				self.player_board.field.buttons[points[i][0]][points[i][1]]["background"] = "blue"
-		return function
 
 
-	def switch_orientation(self, e):
-		highlighted_buttons = self.player_board.field.highlighted_buttons()
-		self.unhighlight_ship(highlighted_buttons[0][0], highlighted_buttons[0][1])(None)
-		self.orientation = not self.orientation
-		self.highlight_ship(highlighted_buttons[0][0], highlighted_buttons[0][1])(None)
 
+class PlayerBoard(Board):
+	def __init__(self, tk, game):
+		Board.__init__(self, tk, game)
+		self.set_field(PlayerField, self.place_ship)
+
+		self.add_hover(self.field.highlight_ship, self.field.unhighlight_ship)
+
+
+	# ——————————————————— SHIP PLACEMENT ———————————————————
 
 	def place_ship(self, x, y):
-		ship_index = len(self.game.players[1].ships)
-		points = points_in_range(self.orientation, [x, y], SHIP_SIZES[ship_index])
+		ship_index = len(self.ships)
+		points = self.points_in_range([x, y], SHIP_SIZES[ship_index])
 		# check if spot invalid
-		if(any(point in points for ship in self.game.players[1].ships for point in ship.location.points)) \
+		if(any(point in points for ship in self.ships for point in ship.location.points)) \
 		or len(points) != SHIP_SIZES[ship_index]:
 			for i in range(len(points)):
-				self.player_board.field.buttons[points[i][0]][points[i][1]]["background"] = "red"
+				self.field.buttons[points[i][0]][points[i][1]]["background"] = "red"
+
 		# spot is valid
 		else:
 			# check placement before proceeding
-			self.unhighlight_ship(x, y)(None)
+			self.field.unhighlight_ship(x, y)(None)
 
-			self.game.players[1].ships.append(Ship(SHIP_NAMES[ship_index], SHIP_SIZES[ship_index]))
-			self.game.players[1].ships[-1].location = Location(self.orientation, SHIP_SIZES[ship_index], [x, y])
-			self.player_board.add_ships_to_field(self.game.players[1].ships)
+			self.ships.append(Ship(SHIP_NAMES[ship_index], SHIP_SIZES[ship_index]))
+			self.ships[-1].location = Location(self.field.orientation, SHIP_SIZES[ship_index], [x, y])
+			self.field.add_ships_to_field(self.ships)
 
-			if ship_index+1 == len(SHIP_SIZES): self.end_ship_placement()
+			if ship_index+1 == len(SHIP_SIZES): self.field.end_ship_placement()
+
+
+
+class EnemyBoard(Board):
+	def __init__(self, tk, game):
+		Board.__init__(self, tk, game)
+		self.set_field(Field, self.player_attack)
+
+		self.place_ships_randomly()
+
+
+	def player_attack(self, x, y):
+		if self.game.enemy_board.is_hit([x, y]): self.game.enemy_board.change_button_symbol([x, y], HIT_CHAR)
+		else: self.game.enemy_board.change_button_symbol([x, y], MISS_CHAR)
+
+
+	# ——————————————————— SHIP PLACEMENT ———————————————————
+
+	def random_location(self, size):
+		self.field.orientation = randint(0, 1)
+		max_size = FIELD_SIZE - 1
+		return [randint(0, max_size - size * (1 - self.field.orientation)), randint(0, max_size - size * self.field.orientation)]
+
+
+	def place_ships_randomly(self):
+		for x in range(len(SHIP_SIZES)):
+			start = self.random_location(SHIP_SIZES[x])
+
+			while self.any_ship_in_range(start, SHIP_SIZES[x]): start = self.random_location(SHIP_SIZES[x])
+			self.ships.append(Ship(SHIP_NAMES[x], SHIP_SIZES[x]))
+			self.ships[x].location = Location(self.field.orientation, SHIP_SIZES[x], start)
+
