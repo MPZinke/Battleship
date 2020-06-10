@@ -1,4 +1,5 @@
 
+from Global import *
 
 import Ships
 
@@ -7,6 +8,7 @@ class Player:
 	def __init__(self, name):
 		self.name = name
 		self.ships = None
+		self.shots = [[False] * FIELD_SIZE] * FIELD_SIZE
 
 
 	def is_hit(self, location):
@@ -18,10 +20,21 @@ class Player:
 		return False
 
 
+class Enemy(Player):
+	def __init__(self, name):
+		Player.__init__(self, name)
+
+		self.shot = None  # previous shot
+		self.targeting = False
+
+	def attack(self):
+		pass
+		# attack logic
+
 
 class Game:
 	def __init__(self):
-		self.players = [Player(name) for name in ["Enemy", "Player"]]
+		self.players = [Enemy("Enemy"), Player("Player")]
 		self.players[0].ships = Ships.place_ships_randomly()
 		self.players[1].ships = []
 

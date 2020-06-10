@@ -1,11 +1,5 @@
 
-
-from tkinter import *
-
-from Global import *
-
-from Game import *
-from Ships import *
+from Window import Window
 
 
 
