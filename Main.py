@@ -1,12 +1,12 @@
 
-from Window import Game
+from Game import Game;
 
 
 
 def main():
-	window = Game()
-	window.tk.mainloop()
+	game = Game();
+	game.mainloop();
 
 
 if __name__ == '__main__':
-	main()
+	main();

@@ -14,33 +14,17 @@ __author__ = "MPZinke"
 ########################################################################################################################
 
 
-from tkinter import *;
 
-from Global import *;
-from Field import *;
-
-
-# shows player & data
-class Board(Frame):
-	def __init__(self, window, game, player):
-		# GUI
-		Frame.__init__(self, window, bg="white", bd=16);
-		self.window = window;  # parent in this case
-
-		self.game = game;
-		self.player = player;
+class AlreadyShot(Exception):
+	def __init__(self, location):
+		Exception.__init__(self, message="Already Shot at location: [{},{}]".format(*location));
 
 
-class AIBoard(Board):
-	def __init__(self, window, game, player):
-		Board.__init__(self, window, game, player);
-		self.field = AIField(self, game, player);
-		self.field.grid(row=0, column=0);
+class OutOfBounds(Exception):
+	def __init__(self, location):
+		Exception.__init__(self, message="[{},{}] is out of bounds".format(*location));
 
 
-
-class UserBoard(Board):
-	def __init__(self, window, game, player):
-		Board.__init__(self, window, game, player);
-		self.field = UserField(self, game, player);
-		self.field.grid(row=0, column=0);
+class TooManyAttempts(Exception):
+	def __init__(self, message):
+		Exception.__init__(self, message=message);

@@ -1,41 +1,42 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+__author__ = "MPZinke"
+
+########################################################################################################################
+#                                                                                                                      #
+#   created by: MPZinke                                                                                                #
+#   on 2021.08.24                                                                                                      #
+#                                                                                                                      #
+#   DESCRIPTION:                                                                                                       #
+#   BUGS:                                                                                                              #
+#   FUTURE:                                                                                                            #
+#                                                                                                                      #
+########################################################################################################################
 
 
-from tkinter import *
+from tkinter import *;
 
-from Global import *
-from Board import *
-
-
-class Game:
-	def __init__(self):
-		self.tk = Tk()
-
-		self.enemy_board = None
-		self.player_board = None
-
-		self.tk.title(WINDOW_TITLE)
-		self.tk.configure(background=WINDOW_BACKGROUND)
-		self.tk.geometry("1000x700")
-
-		self.enemy_board = self.new_element(EnemyBoard(self.tk, self), 0, 0)
-		self.enemy_board.field.add_ships_to_field(self.enemy_board.ships)  #TESTING
-		self.enemy_board.field.disable_field_buttons()
-
-		self.player_board = self.new_element(PlayerBoard(self.tk, self), 1, 0)
-
-		self.select_ships = True  # bool whether ships are being place by user
+from Global import *;
+from Board import AIBoard, UserBoard;
 
 
+class Window(Tk):
+	def __init__(self, game):
+		Tk.__init__(self);
+		self.title(WINDOW_TITLE);
+		self.configure(background=WINDOW_BACKGROUND);
+		self.geometry("1000x700");
 
-	def new_element(self, element, row, column, rowspan=1, columnspan=1):
-		element.grid(row=row, column=column, rowspan=rowspan, columnspan=columnspan)
-		return element
+		self.game = game;
+
+		# A Window has 2 Boards, which each have a Field and an Status display.
+		self.boards = [[UserBoard, AIBoard][player.is_AI](self, game, player) for player in self.game.players];
+		for x in range(len(self.boards)): self.boards[x].grid(row=x, column=0);
 
 
-	# ————————————————————— ATTACK ——————————————————————
+	def update_player_field(self, player_number, location, character):
+		self.boards[player_number].update_field(location, character);
 
-	def enemy_attack(self):
-		# disable buttons
-		# attack
-		self.enable_unattacked_enemy_buttons()
 
+	def update_player_ships(self, player_number, ship_name, ship_point, character):
+		self.board[player_number].update_ship_point(ship_name, ship_point);
