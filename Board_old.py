@@ -79,7 +79,7 @@ class UserBoard(Board):
 		points = location.points;
 
 		# If spot is invalid: turn buttons red
-		if(not Location.points_are_in_range(points=points) or Location.any_ships_overlaps_points(self.ships, points)):
+		if(not Location.points_are_in_range(points) or Location.any_ship_overlap(self.ships, points=points)):
 			for x in range(len(points)): self.field.buttons[points[x][0]][points[x][1]]["background"] = "red";
 
 		# Otherwise, spot is valid

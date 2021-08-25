@@ -16,7 +16,7 @@ __author__ = "MPZinke"
 
 from Global import *
 
-from Ships import Ship;
+from Ships import Location, Ship;
 
 
 class Player:
@@ -80,8 +80,8 @@ class AI(Player):
 
 
 	def place_ships(self):
-		self.ships = Ship.place_ships_randomly();
-		self.ships_are_placed = True;
+		self.ships.append(Ship.place_single_ship_randomly(Ship.SHIPS[len(self.ships)], self.ships));
+		self.ships_are_placed = len(self.ships) == len(Ship.SHIPS);
 
 
 
@@ -96,9 +96,15 @@ class User(Player):
 
 
 	def place_ship(self, x, y, orientation):
+		print("X: {}, Y: {}, Z: {}".format(x, y, orientation))  #TESTING
 		ship = Ship.SHIPS[len(self.ships)];
-		self.ship.append(Ship(ship["id"], ship["name"], ship["size"], Location(orientation, ship["size"], [x,y])));
+		self.ships.append(Ship(ship["id"], ship["name"], ship["size"], Location(orientation, ship["size"], [x,y])));
+		if(len(self.ships) == len(Ship.SHIPS)):
+			self.ships_are_placed = True;
+			self.game.window.boards[self.game.player_number(self)].field.disable_field_buttons();
+
 
 
 	def place_ships(self):
 		self.print();  #TESTING
+		self.ships_are_placed = len(self.ships) == len(Ship.SHIPS);

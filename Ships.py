@@ -13,23 +13,32 @@ class Location:
 		self.start = start;  # starting point
 
 
-	# Checks if any ship overlaps with the points in range.
+	# Checks if there is any ship overlap with the points in range.
 	@staticmethod
-	def any_ships_overlaps_points(ships, **kwargs):
+	def any_ship_overlap(ships, **kwargs):
 		# Makes sure function is used properly
 		if("points" not in kwargs and ("orientation" not in kwargs or "start" not in kwargs or "size" not in kwargs)):
-			raise Exception("Function requires ('points') OR ('orientation', 'start', 'size')");
+			raise Exception("Location.any_ship_overlap requires ('points') OR ('orientation', 'start', 'size')");
 
 		# Get points (if points not provided, calculate them) & check them
 		if("points" in kwargs): points = kwargs["points"];
-		else: points = Location.points_are_in_range(kwargs["orientation"], kwargs["start"], kwargs["size"]);
+		else: points = Location(kwargs["orientation"], kwargs["size"], kwargs["start"]).points;
 		return any(point in points for ship in ships for point in ship.location.points);
 
 
 	# Checks whether the specified point is in range based on orientation, size, & start.
+	# Takes either (points: list) OR (orientation: bool, size: int, start: list)
 	@staticmethod
-	def points_are_in_range(orientation, start, size):
-		return ((start[orientation] + size-1) < FIELD_SIZE) and (start[not orientation] < FIELD_SIZE);
+	def points_are_in_range(**kwargs):
+		if("points" not in kwargs and ("orientation" not in kwargs or "start" not in kwargs or "size" not in kwargs)):
+			raise Exception("Location.points_are_in_range requires ('points') OR ('orientation', 'start', 'size')");
+
+		# whether last value in array is in range (assumes that the array is sorted from least to greatest)
+		if("points" in kwargs): return kwargs["points"][-1][0] < FIELD_SIZE and kwargs["points"][-1][1] < FIELD_SIZE;
+
+		# Get by keys
+		orientation, size, start = [kwargs[key] for key in ["orientation", "size", "start"]];
+		return (start[orientation] + size-1) < FIELD_SIZE and (start[not orientation] < FIELD_SIZE);
 
 
 	# Creates a random location within FIELD_SIZE with a random orientation & start.
@@ -40,6 +49,11 @@ class Location:
 		# Use some good ol' boolean algebra for logic
 		start = [randint(0, max_size - size * (1 - orientation)), randint(0, max_size - size * orientation)];
 		return Location(orientation, size, start);
+
+
+	@staticmethod
+	def usable_points(points):
+		return [point for point in points if point[0] < FIELD_SIZE and point[1] < FIELD_SIZE];
 
 
 
@@ -88,7 +102,18 @@ class Ship:
 
 
 	@staticmethod
-	def place_ships_randomly():
+	def place_single_ship_randomly(ship, ships):
+		# Keep trying to get a random location for the ships (up to 65536)
+		for x in range(0xFFFF):
+			if(x == 0xFFFE): raise TooManyAttempts("The ship was unable to be placed in 65535 randomized attempts");
+
+			location = Location.random_location(ship["size"]);
+			if(not Location.any_ship_overlap(ships, points=location.points)):
+				return Ship(ship["id"], ship["name"], ship["size"], location);
+
+
+	@staticmethod
+	def place_all_ships_randomly():
 		ships = [];
 		for ship in Ship.SHIPS:
 			# Keep trying to get a random location for the ships (up to 65536)
@@ -96,7 +121,7 @@ class Ship:
 				location = Location.random_location(ship["size"]);
 
 				if(x == 0xFFFE): raise TooManyAttempts("The ship was unable to be placed in 65535 randomized attempts");
-				if(not Location.any_ships_overlaps_points(ships, points=location.points)):
+				if(not Location.any_ship_overlap(ships, points=location.points)):
 					ships.append(Ship(ship["id"], ship["name"], ship["size"], location));
 					break;
 

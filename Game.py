@@ -63,6 +63,13 @@ class Game:
 		self.window.mainloop();
 
 
+	def increment_turn(self):
+		player = self.player_for_turn();
+		if(self.is_ship_placement and player.ships_are_placed and self.other_player(player).ships_are_placed):
+			self.is_ship_placement = False;
+		self.turn_count += 1;
+
+
 	def is_over(self):
 		for x in range(len(self.players)):
 			if all(ship.is_sunk() for ship in self.players[x].ships):
@@ -77,6 +84,10 @@ class Game:
 
 	def player_for_turn(self):
 		return self.players[self.turn_count & 1];
+
+
+	def player_number_for_turn(self):
+		return self.turn_count & 1;
 
 
 	# ———————————————————————————————————————————————————  GETTERS ——————————————————————————————————————————————————— #

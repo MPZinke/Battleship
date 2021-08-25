@@ -17,10 +17,11 @@ __author__ = "MPZinke"
 from tkinter import Frame, Button;
 
 from Global import *;
+from Ships import Location, Ship;
 
 
-def do_nothing(x, y):
-	print("Nothing done at [{},{}]".format(x, y));
+def do_nothing(x, y, z):
+	print("Nothing done at [{},{},{}]".format(x, y, z));
 
 
 class Field(Frame):
@@ -31,21 +32,32 @@ class Field(Frame):
 
 		self.game = game;
 		self.player = player;
+		self.orientation = False;
+
+
+	def switch_orientation(self):
+		self.orientation ^= 1;
+
 
 
 	# ——————————————————————————————————————————————————— BUTTONS  ——————————————————————————————————————————————————— #
 
+	def add_hover(self, enter, leave):
+		[self.buttons[x][y].bind("<Enter>", enter(x, y)) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
+		[self.buttons[x][y].bind("<Leave>", leave(x, y)) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
+
+
 	def assign_buttons(self):
 		button_points = [[x, y] for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 		for point in button_points:  # button columns should be in order
-			function = lambda x=point[0],y=point[1]: self.callback(x,y);
+			function = lambda x=point[0],y=point[1]: self.callback(x,y,self.orientation);
 			args = {"master": self, "bg": "blue", "foreground": "white", "text": "  ", "command": function};
 			self.buttons[point[0]].append(Button(**args));
 			index(self.buttons, point).grid(row=point[0], column=point[1]);
 
 
 	def add_ships_to_field(self, ships):
-		[index(self.buttons, point)config(text=SHIP_CHAR) for ship in ships for point in ship.location.points];
+		[index(self.buttons, point).config(text=SHIP_CHAR) for ship in ships for point in ship.location.points];
 
 
 	def change_button_symbol(self, location, symbol):
@@ -57,11 +69,11 @@ class Field(Frame):
 
 
 	def disable_field_buttons(self):
-		[self.buttons[x][y].config(state="disable") for x in range(FIELD_SIZE) for x in range(FIELD_SIZE)];
+		[self.buttons[x][y].config(state="disable") for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 
 
 	def enable_field_buttons(self):
-		[self.buttons[x][y].config(state="normal") for x in range(FIELD_SIZE) for x in range(FIELD_SIZE)];
+		[self.buttons[x][y].config(state="normal") for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 
 
 
@@ -76,33 +88,26 @@ class AIField(Field):
 class UserField(Field):
 	def __init__(self, parent, game, player):
 		Field.__init__(self, parent, game, player);
-		self.orientation = False;
-		self.parent.window.bind("<Tab>", self.switch_orientation);
-
+		# GUI::
+		# GUI::BUTTONS
 		self.callback = player.place_ship;
 		self.assign_buttons();
-
-
-	def switch_orientation(self):
-		self.orientation ^= 1;
+		self.add_hover(self.highlight_ship, self.unhighlight_ship)
 
 
 	def highlight_ship(self, x, y):
 		def function(e):
-			if not self.game.select_ships: return
-			points = self.points_in_range([x, y], SHIP_SIZES[len(self.parent.ships)])
-			color = "yellow" if len(points) == SHIP_SIZES[len(self.parent.ships)] else "red"
-			for i in range(len(points)):
-			[index(self.buttons, points[i]).confi(background=color) for i in range(len(points))];
-				self.buttons[points[i][0]][points[i][1]]["background"] = color
+			if self.player.ships_are_placed: return;
+			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], [x,y]).points;
+			color = "yellow" if Location.points_are_in_range(points=points) else "red";
+			[index(self.buttons, point).config(background=color) for point in Location.usable_points(points)];
 		return function
 
 
 	def unhighlight_ship(self, x, y):
 		def function(e):
-			if not self.game.select_ships: return
-			points = self.points_in_range([x, y], SHIP_SIZES[len(self.parent.ships)])
-			for i in range(len(points)):
-				self.buttons[points[i][0]][points[i][1]]["background"] = "blue"
+			if self.player.ships_are_placed: return;
+			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], [x,y]).points;
+			[index(self.buttons, point).config(background="blue") for point in Location.usable_points(points)];
 		return function
 

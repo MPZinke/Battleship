@@ -98,6 +98,7 @@ class PlayerField(Field):
 			points = self.points_in_range([x, y], SHIP_SIZES[len(self.parent.ships)])
 			color = "yellow" if len(points) == SHIP_SIZES[len(self.parent.ships)] else "red"
 			for i in range(len(points)):
+			[index(self.buttons, points[i]).confi(background=color) for i in range(len(points))];
 				self.buttons[points[i][0]][points[i][1]]["background"] = color
 		return function
 
