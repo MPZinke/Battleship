@@ -82,6 +82,7 @@ class AIField(Field):
 		Field.__init__(self, parent, game, player);
 		self.callback = do_nothing;
 		self.assign_buttons();
+		self.disable_field_buttons();
 
 
 
@@ -110,4 +111,3 @@ class UserField(Field):
 			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], [x,y]).points;
 			[index(self.buttons, point).config(background="blue") for point in Location.usable_points(points)];
 		return function
-

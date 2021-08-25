@@ -65,8 +65,10 @@ class Game:
 
 	def increment_turn(self):
 		player = self.player_for_turn();
-		if(self.is_ship_placement and player.ships_are_placed and self.other_player(player).ships_are_placed):
+		other_player = self.other_player(player);
+		if(self.is_ship_placement and player.ships_are_placed and other_player.ships_are_placed):
 			self.is_ship_placement = False;
+		if(other_player.is_AI): other_player.attack();  #TODO: build attack function
 		self.turn_count += 1;
 
 
