@@ -35,11 +35,6 @@ class Field(Frame):
 		self.orientation = False;
 
 
-	def switch_orientation(self):
-		self.orientation ^= 1;
-
-
-
 	# ——————————————————————————————————————————————————— BUTTONS  ——————————————————————————————————————————————————— #
 
 	def add_hover(self, enter, leave):
@@ -50,17 +45,16 @@ class Field(Frame):
 	def assign_buttons(self):
 		button_points = [[x, y] for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 		for point in button_points:  # button columns should be in order
-			function = lambda x=point[0],y=point[1]: self.callback(x,y,self.orientation);
-			args = {"master": self, "bg": "blue", "foreground": "white", "text": "  ", "command": function};
-			self.buttons[point[0]].append(Button(**args));
+			function = lambda x=point[0],y=point[1]: self.callback(x,y);
+			self.buttons[point[0]].append(Button(master=self, bg=WATER_CLR, text=OCEAN_CHAR, command=function));
 			index(self.buttons, point).grid(row=point[0], column=point[1]);
 
 
-	def add_ships_to_field(self, ships):
-		[index(self.buttons, point).config(text=SHIP_CHAR) for ship in ships for point in ship.location.points];
+	def change_button_color(self, location, symbol):
+		index(self.buttons, location)["background"] = symbol;
 
 
-	def change_button_symbol(self, location, symbol):
+	def change_button_text(self, location, symbol):
 		index(self.buttons, location)["text"] = symbol;
 
 
@@ -76,6 +70,24 @@ class Field(Frame):
 		[self.buttons[x][y].config(state="normal") for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 
 
+	# Gets all buttons specified as color.
+	def colored_buttons(self, color):
+		buttons = self.buttons;
+		return [[x,y] for x in range(FIELD_SIZE) for y in range(FIELD_SIZE) if index(buttons, [x,y])["bg"] == color];
+
+
+	def redraw_field(self, ships):
+		[self.change_button_color([x,y], WATER_CLR) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
+		[self.change_button_text(point, OCEAN_CHAR) for ship in ships for point in ship.location.points];
+
+		[self.change_button_text(point, SHIP_CHAR) for ship in ships for point in ship.location.points];
+		for ship in self.player.ships:
+			for point in ship.location.points:
+				char, color = [[SHIP_CHAR, SHIP_CLR], [HIT_CHAR, HIT_CLR]][ship.is_hit(point)];
+				self.change_button_text(point, char);
+				self.change_button_color(point, color);
+
+
 
 class AIField(Field):
 	def __init__(self, parent, game, player):
@@ -85,29 +97,58 @@ class AIField(Field):
 		self.disable_field_buttons();
 
 
+	def switch_orientation(self):
+		print("AI: switch_orientation");
+
+
 
 class UserField(Field):
 	def __init__(self, parent, game, player):
 		Field.__init__(self, parent, game, player);
 		# GUI::
 		# GUI::BUTTONS
-		self.callback = player.place_ship;
+		self.callback = self.place_ships
 		self.assign_buttons();
 		self.add_hover(self.highlight_ship, self.unhighlight_ship)
 
 
+	def place_ships(self, x, y):
+		ship = self.player.place_ships(x, y, self.orientation);
+
+		# update squares
+		[index(self.buttons, point).config(background=SHIP_CLR, text=SHIP_CHAR) for point in ship.location.points];
+		if(self.player.ships_are_placed): self.disable_field_buttons();  # disable buttons if ship placing is complete
+
+
+	def switch_orientation(self):
+		highlighted = self.colored_buttons("green") + self.colored_buttons("yellow") + self.colored_buttons("red");
+		if(not highlighted): self.orientation ^= 1;
+		
+		self.unhighlight_ship(*(highlighted[0]))(None);
+		self.orientation ^= 1;
+		self.highlight_ship(*(highlighted[0]))(None);
+
+
 	def highlight_ship(self, x, y):
 		def function(e):
-			if self.player.ships_are_placed: return;
+			if self.player.ships_are_placed: return;  # skip unnecessary work
 			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], [x,y]).points;
-			color = "yellow" if Location.points_are_in_range(points=points) else "red";
-			[index(self.buttons, point).config(background=color) for point in Location.usable_points(points)];
+
+			points_are_in_range = Location.points_are_in_range(points=points);
+			any_ship_overlap = Location.any_ship_overlap(self.player.ships, points=points);
+			color = {0: "red", 1: "green"}[points_are_in_range and not any_ship_overlap];
+			[self.change_button_color(point, color) for point in Location.usable_points(points)];
+
 		return function
 
 
 	def unhighlight_ship(self, x, y):
 		def function(e):
-			if self.player.ships_are_placed: return;
+			if self.player.ships_are_placed: return;  # skip unnecessary work
+
 			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], [x,y]).points;
-			[index(self.buttons, point).config(background="blue") for point in Location.usable_points(points)];
+			for point in Location.usable_points(points):
+				color = {0: WATER_CLR, 1: SHIP_CLR}[Location.any_ship_overlap(self.player.ships, points=[point])];
+				self.change_button_color(point, color);
+
 		return function

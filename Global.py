@@ -8,6 +8,10 @@ HIT_CHAR = '×'
 MISS_CHAR = '○'
 SHIP_CHAR = 'S'
 
+WATER_CLR = "blue";
+SHIP_CLR = "gray";
+HIT_CLR = "red";
+
 
 SHIP_NAMES = ["Carrier", "Battleship", "Friggate", "Friggate", "Cruiser"]
 SHIP_SIZES = [5, 4, 3, 3, 2]

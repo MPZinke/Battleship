@@ -16,13 +16,21 @@ __author__ = "MPZinke"
 
 
 class AlreadyShot(Exception):
-	def __init__(self, location):
-		Exception.__init__(self, message="Already Shot at location: [{},{}]".format(*location));
+	def __init__(self, point):
+		Exception.__init__(self, message="Already Shot at point: [{},{}]".format(*point));
+
 
 
 class OutOfBounds(Exception):
-	def __init__(self, location):
-		Exception.__init__(self, message="[{},{}] is out of bounds".format(*location));
+	def __init__(self, point):
+		Exception.__init__(self, message="[{},{}] is out of bounds".format(*point));
+
+
+
+class ShipInWay(Exception):
+	def __init__(self, point):
+		Exception.__init__(self, message="There is a conflicting ship at [{},{}]".format(*point));
+
 
 
 class TooManyAttempts(Exception):

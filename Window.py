@@ -31,7 +31,7 @@ class Window(Tk):
 		self.game = game;
 
 		# A Window has 2 Boards, which each have a Field and an Status display.
-		self.boards = [[UserBoard, AIBoard][player.is_AI](self, game, player) for player in self.game.players];
+		self.boards = [[UserBoard, AIBoard][player.is_AI](self, game, player) for player in game.players];
 		for x in range(len(self.boards)): self.boards[x].grid(row=x, column=0);
 
 

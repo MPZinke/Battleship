@@ -76,13 +76,21 @@ class Ship:
 
 
 	# Unsafe way of attacking ship (assumes function calling method can guarentee that the location is hit).
-	def hit(self, location):
-		self.hits[location[self.location.orientation] - self.location.start[self.location.orientation]] = True;
+	def hit(self, point):
+		self.hits[point[self.point.orientation] - self.point.start[self.point.orientation]] = True;
 		if(self.is_sunk()): print("SUNK");
 
 
-	def is_hit(self, location):
-		return any()
+	# Determines if point is a spot within the ship's points that could be considered a hit.
+	def hits_ship(self, point):
+		return point in self.location.points;
+
+
+	# Determines if the ship has been hit at the point.
+	# Compares the array value with True to return a copy value (instead of location).
+	# Takes the point that is being checked.
+	def is_hit(self, point):
+		return self.hits[point[self.point.orientation] - self.point.start[self.point.orientation]] == True; 
 
 
 	def is_sunk(self):
@@ -90,14 +98,14 @@ class Ship:
 
 
 	# Ship has been shot at. Determines if it is a hit and marks it if so.
-	# Takes the location that was shot at.
+	# Takes the point that was shot at.
 	# Marks the hit if it was a hit.
 	# Returns whether the ship was hit.
-	def shot(self, location):
-		if(location not in self.location.points): return False;
+	def shot(self, point):
+		if(point not in self.location.points): return False;
 
 		# Mark where on the ship it was hit
-		self.hits[location[self.location.orientation] - self.location.start[self.location.orientation]] = True;
+		self.hits[point[self.location.orientation] - self.location.start[self.location.orientation]] = True;
 		return True;
 
 

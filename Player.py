@@ -30,11 +30,19 @@ class Player:
 		self.shots = [[False] * FIELD_SIZE] * FIELD_SIZE;  # places opponent has shot
 
 
+	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
+
 	def is_hit(self, location):
 		return any(ship.is_hit(location) for ship in self.ships);
 
 
-	def place_ships(self):
+	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
+
+	def last_placed_ship(self):
+		return self.ships[-1] if self.ships else None;
+
+
+	def place_ships(self, x, y, orientation):
 		raise Exception("No function for placing ships in a child class");
 
 
@@ -48,6 +56,8 @@ class Player:
 				row += {1: OCEAN_CHAR_CLI, 2: SHIP_CHAR, 4: MISS_CHAR, 8: HIT_CHAR}[value];
 			print(row);
 
+
+	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
 	# Function called when attacking another player.
 	def shoot(self, location):
@@ -71,40 +81,63 @@ class AI(Player):
 
 		self.previous_shots = [];  # previous shots
 		self.targeting = False;  # whether the enemy has found a ship and is tracking it
-		self.place_ships();
 
+
+	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
 	def attack(self):
 		self.game.enemy_board.print()  #TESTING
 		# attack logic
 
 
-	def place_ships(self):
+	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
+
+	def place_ships(self, x, y, orientation):
 		self.ships.append(Ship.place_single_ship_randomly(Ship.SHIPS[len(self.ships)], self.ships));
 		self.ships_are_placed = len(self.ships) == len(Ship.SHIPS);
+		self.game.increment_turn();
+
+
+	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #
+
+	def turn(self):
+		if(not self.ships_are_placed):
+			print("AI: Placed Ship");  #TESTING
+			self.place_ships(0, 0, 0);
+		else:
+			pass;
 
 
 
 class User(Player):
 	def __init__(self, game, name="User"):
 		Player.__init__(self, game, name);
-		self.place_ships();  #TESTING
 
+
+	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #
 
 	def is_my_turn(self):
 		return self.game.is_players_turn(self);
 
 
-	def place_ship(self, x, y, orientation):
-		print("X: {}, Y: {}, Z: {}".format(x, y, orientation))  #TESTING
+	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
+
+	def attack(self):
+		pass
+
+
+	def turn(self):
+		print("My turn");
+		self.game.increment_turn();
+
+
+	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
+
+	def place_ships(self, x, y, orientation):
+		print("User: X: {}, Y: {}, Z: {}".format(x, y, orientation));  #TESTING
 		ship = Ship.SHIPS[len(self.ships)];
 		self.ships.append(Ship(ship["id"], ship["name"], ship["size"], Location(orientation, ship["size"], [x,y])));
-		if(len(self.ships) == len(Ship.SHIPS)):
-			self.ships_are_placed = True;
-			self.game.window.boards[self.game.player_number(self)].field.disable_field_buttons();
-
-
-
-	def place_ships(self):
-		self.print();  #TESTING
 		self.ships_are_placed = len(self.ships) == len(Ship.SHIPS);
+
+		self.game.increment_turn();
+		return self.last_placed_ship();  # for reference by calling function

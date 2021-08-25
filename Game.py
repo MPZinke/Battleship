@@ -33,6 +33,8 @@ class Game:
 		# A Game has a Window which has 2 Boards, which each have a Field and an Status display.
 		self.window = Window(self);
 
+		self.increment_turn();
+
 
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
@@ -66,9 +68,16 @@ class Game:
 	def increment_turn(self):
 		player = self.player_for_turn();
 		other_player = self.other_player(player);
+
 		if(self.is_ship_placement and player.ships_are_placed and other_player.ships_are_placed):
 			self.is_ship_placement = False;
-		if(other_player.is_AI): other_player.attack();  #TODO: build attack function
+
+		if(other_player.is_AI):
+			print("AI turn");  # TESTING
+			other_player.turn();  #TODO: build attack function
+		# else: I get to destroy some stuff
+		else:
+			print("User turn");  # TESTING
 		self.turn_count += 1;
 
 
