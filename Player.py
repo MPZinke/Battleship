@@ -95,17 +95,17 @@ class AI(Player):
 	def place_ships(self, x, y, orientation):
 		self.ships.append(Ship.place_single_ship_randomly(Ship.SHIPS[len(self.ships)], self.ships));
 		self.ships_are_placed = len(self.ships) == len(Ship.SHIPS);
-		self.game.increment_turn();
 
 
 	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #
 
 	def turn(self):
 		if(not self.ships_are_placed):
-			print("AI: Placed Ship");  #TESTING
+			print("\tAI: Placed Ship");  #TESTING
 			self.place_ships(0, 0, 0);
+		# Try to attack and prepare to be attacked
 		else:
-			pass;
+			print("ATTACK");
 
 
 
@@ -128,16 +128,16 @@ class User(Player):
 
 	def turn(self):
 		print("My turn");
-		self.game.increment_turn();
+		self.game.next_turn();
 
 
 	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
 
 	def place_ships(self, x, y, orientation):
-		print("User: X: {}, Y: {}, Z: {}".format(x, y, orientation));  #TESTING
+		print("\tUser: Placed ship");  #TESTING
 		ship = Ship.SHIPS[len(self.ships)];
 		self.ships.append(Ship(ship["id"], ship["name"], ship["size"], Location(orientation, ship["size"], [x,y])));
 		self.ships_are_placed = len(self.ships) == len(Ship.SHIPS);
 
-		self.game.increment_turn();
+		self.game.next_turn();
 		return self.last_placed_ship();  # for reference by calling function

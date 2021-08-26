@@ -32,8 +32,8 @@ class Game:
 
 		# A Game has a Window which has 2 Boards, which each have a Field and an Status display.
 		self.window = Window(self);
-
-		self.increment_turn();
+		# Let the games begin
+		self.next_turn();
 
 
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
@@ -65,20 +65,21 @@ class Game:
 		self.window.mainloop();
 
 
-	def increment_turn(self):
+	def next_turn(self):
 		player = self.player_for_turn();
 		other_player = self.other_player(player);
-
-		if(self.is_ship_placement and player.ships_are_placed and other_player.ships_are_placed):
-			self.is_ship_placement = False;
-
-		if(other_player.is_AI):
-			print("AI turn");  # TESTING
-			other_player.turn();  #TODO: build attack function
-		# else: I get to destroy some stuff
-		else:
-			print("User turn");  # TESTING
-		self.turn_count += 1;
+		
+		# If user just went, play for them
+		if(not player.is_AI):
+			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, player.name));  #TESTING
+			self.turn_count += 1;
+			player, other_player = other_player, player;
+		# If next player is AI, let them move
+		while(player.is_AI and self.turn_count < 0xFFFF):
+			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, player.name));  #TESTING
+			player.turn();
+			self.turn_count += 1;
+			player, other_player = other_player, player;
 
 
 	def is_over(self):
@@ -93,19 +94,23 @@ class Game:
 		return player == self.players[self.turn_count & 1];
 
 
-	def player_for_turn(self):
-		return self.players[self.turn_count & 1];
-
-
-	def player_number_for_turn(self):
-		return self.turn_count & 1;
-
-
 	# ———————————————————————————————————————————————————  GETTERS ——————————————————————————————————————————————————— #
 
 	def other_player(self, player):
 		return self.players[player != self.players[1]];
 
 
+	def other_player_number(self, player):
+		return player != self.players[1];
+
+
+	def player_for_turn(self):
+		return self.players[self.turn_count & 1];
+
+
 	def player_number(self, player):
 		return player == self.players[1];
+
+
+	def player_number_for_turn(self):
+		return self.turn_count & 1;

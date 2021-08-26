@@ -20,7 +20,7 @@ from Global import *;
 from Ships import Location, Ship;
 
 
-def do_nothing(x, y, z):
+def do_nothing(x, y):
 	print("Nothing done at [{},{},{}]".format(x, y, z));
 
 
@@ -115,18 +115,22 @@ class UserField(Field):
 	def place_ships(self, x, y):
 		ship = self.player.place_ships(x, y, self.orientation);
 
-		# update squares
+		# update previous ship squares, then next ship squares
 		[index(self.buttons, point).config(background=SHIP_CLR, text=SHIP_CHAR) for point in ship.location.points];
-		if(self.player.ships_are_placed): self.disable_field_buttons();  # disable buttons if ship placing is complete
+		self.highlight_ship(x, y)(None);
+		# disable buttons if ship placing is complete
+		if(self.player.ships_are_placed):
+			self.disable_field_buttons();
+			self.parent.window.boards[self.game.other_player_number(self.player)].field.enable_field_buttons();
 
 
 	def switch_orientation(self):
 		highlighted = self.colored_buttons("green") + self.colored_buttons("yellow") + self.colored_buttons("red");
 		if(not highlighted): self.orientation ^= 1;
-		
-		self.unhighlight_ship(*(highlighted[0]))(None);
-		self.orientation ^= 1;
-		self.highlight_ship(*(highlighted[0]))(None);
+		else:
+			self.unhighlight_ship(*(highlighted[0]))(None);
+			self.orientation ^= 1;
+			self.highlight_ship(*(highlighted[0]))(None);
 
 
 	def highlight_ship(self, x, y):

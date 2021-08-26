@@ -2,7 +2,7 @@
 
 FIELD_SIZE = 10
 
-OCEAN_CHAR = ' '
+OCEAN_CHAR = '  '
 OCEAN_CHAR_CLI = '~'
 HIT_CHAR = '×'
 MISS_CHAR = '○'
