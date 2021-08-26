@@ -15,6 +15,8 @@ __author__ = "MPZinke"
 
 
 from tkinter import Frame, Button;
+import platform;
+if(platform.system() == "Darwin"): from tkmacosx import Button;
 
 from Global import *;
 from Ships import Location, Ship;
@@ -59,11 +61,12 @@ class Field(Frame):
 
 
 	def disable_button(self, x, y):
-		self.buttons[x][y]["state"] = "disable"
+		self.buttons[x][y]["state"] = "disabled" if(platform.system() == "Darwin") else "disable";
 
 
 	def disable_field_buttons(self):
-		[self.buttons[x][y].config(state="disable") for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
+		state = "disabled" if(platform.system() == "Darwin") else "disable";
+		[self.buttons[x][y].config(state=state) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 
 
 	def enable_field_buttons(self):
