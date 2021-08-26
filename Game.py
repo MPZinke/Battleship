@@ -14,14 +14,16 @@ __author__ = "MPZinke"
 ########################################################################################################################
 
 
+from time import sleep;
+
 from Player import AI, User;
-from Window import Window;
+from GUI.Window import Window;
 
 
 class Game:
 	def __init__(self):
 		# Players in the game
-		self.players = [AI(self), User(self)];  # this is where it is defined whether single or multiplayer
+		self.players = [AI(self, "AI"), User(self, "MPZinke")];  # this is where it is defined whether single or multiplayer
 		self.enemy = self.players[0];  # Sugar
 		self.user = self.players[1];  # Sugar
 
@@ -41,8 +43,8 @@ class Game:
 	# Calls the attack method for a player.
 	# PARAMS: The player who is attacking, the location they are attacking.
 	def attack(self, player, location):
-		attacker = self.player[self.player_number(player)];
-		defender = self.player[not self.player_number(player)];
+		attacker = player;
+		defender = self.opposing_player_for_player(player);
 
 		attacker.shoot(location);
 		defender.shot(location);
@@ -66,20 +68,25 @@ class Game:
 
 
 	def next_turn(self):
-		player = self.player_for_turn();
-		other_player = self.other_player(player);
+		attacker = self.player_for_turn();
+		defender = self.opposing_player_for_turn();
 		
 		# If user just went, play for them
-		if(not player.is_AI):
-			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, player.name));  #TESTING
+		if(not attacker.is_AI):
+			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, attacker.name));  #TESTING
 			self.turn_count += 1;
-			player, other_player = other_player, player;
+			attacker, defender = defender, attacker;
+			# self.window.switch_boards();
+
 		# If next player is AI, let them move
-		while(player.is_AI and self.turn_count < 0xFFFF):
-			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, player.name));  #TESTING
-			player.turn();
+		while(attacker.is_AI and self.turn_count < 0xFFFF):
+			# sleep(2);  # to give that authentic player experience
+			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, attacker.name));  #TESTING
+			attacker.turn();
 			self.turn_count += 1;
-			player, other_player = other_player, player;
+			attacker, defender = defender, attacker;
+			# self.window.switch_boards();
+			sleep(0.5);  # to give that authentic player experience
 
 
 	def is_over(self):
@@ -96,21 +103,37 @@ class Game:
 
 	# ———————————————————————————————————————————————————  GETTERS ——————————————————————————————————————————————————— #
 
-	def other_player(self, player):
+	# Returns the opposing (other) player for the current turn. (EG if it's my turn, it returns my enemy).
+	def opposing_player_for_turn(self):
+		return self.players[not (self.turn_count & 1)];
+
+
+	# Returns the opposing (other) player for the . (EG if it's my turn, it returns my enemy).
+	def opposing_player_for_player(self, player):
 		return self.players[player != self.players[1]];
 
 
-	def other_player_number(self, player):
+	# Returns the opposing (other) player's number for the current turn. 
+	# (EG if it's my turn, it returns my enemy's index).
+	def opposing_player_number_for_turn(self):
+		return not (self.turn_count & 1);
+
+
+	# Returns the player number for the current turn. (EG if it's my turn, it returns my opponents index).
+	def opposing_player_number(self, player):
 		return player != self.players[1];
 
 
+	# Returns the player for the current turn. (EG if it's my turn, it returns me).
 	def player_for_turn(self):
 		return self.players[self.turn_count & 1];
 
 
+	# Returns the index of a player within the players list.
 	def player_number(self, player):
 		return player == self.players[1];
 
 
+	# Returns the player number for the current turn. (EG if it's my turn, it returns my index).
 	def player_number_for_turn(self):
 		return self.turn_count & 1;

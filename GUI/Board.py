@@ -17,31 +17,33 @@ __author__ = "MPZinke"
 from tkinter import *;
 
 from Global import *;
-from Board import AIBoard, UserBoard;
+from GUI.Field import *;
 
 
-class Window(Tk):
-	def __init__(self, game):
-		Tk.__init__(self);
-		self.title(WINDOW_TITLE);
-		self.configure(background=WINDOW_BACKGROUND);
-		self.geometry("1000x700");
-		self.bind("<Tab>", self.switch_ship_placement_orientation);
+# shows player & data
+class Board(Frame):
+	def __init__(self, window, game, player, opponent):
+		# GUI
+		Frame.__init__(self, window, bg="white", bd=16);
+		self.window = window;  # parent in this case
 
 		self.game = game;
-
-		# A Window has 2 Boards, which each have a Field and an Status display.
-		self.boards = [[UserBoard, AIBoard][player.is_AI](self, game, player) for player in game.players];
-		for x in range(len(self.boards)): self.boards[x].grid(row=x, column=0);
+		self.player = player;
+		self.opponent = opponent;
 
 
-	def switch_ship_placement_orientation(self, e):
-		self.boards[self.game.player_number_for_turn()].field.switch_orientation();
+class AIBoard(Board):
+	def __init__(self, window, game, ai, opponent):
+		Board.__init__(self, window, game, ai, opponent);
+		self.fields = [AIField(self, game, opponent), AIField(self, game, ai)];
+		[self.fields[x].grid(row=x, column=0) for x in range(len(self.fields))];
+		# self.field = AIField(self, game, player);
+		# self.field.grid(row=0, column=0);
 
 
-	def update_player_field(self, player_number, location, character):
-		self.boards[player_number].update_field(location, character);
 
-
-	def update_player_ships(self, player_number, ship_name, ship_point, character):
-		self.board[player_number].update_ship_point(ship_name, ship_point);
+class UserBoard(Board):
+	def __init__(self, window, game, user, opponent):
+		Board.__init__(self, window, game, user, opponent);
+		self.fields = [EnemyField(self, game, opponent), PlayerField(self, game, user)];
+		[self.fields[x].grid(row=x, column=0) for x in range(len(self.fields))];

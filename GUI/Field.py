@@ -14,33 +14,55 @@ __author__ = "MPZinke"
 ########################################################################################################################
 
 
-from tkinter import *;
+from tkinter import Frame, Label;
 
 from Global import *;
-from Field import *;
+from GUI.Ocean import AIOcean, EnemyOcean, PlayerOcean;
+from GUI.Status import EnemyStatus, PlayerStatus;
 
 
-# shows player & data
-class Board(Frame):
-	def __init__(self, window, game, player):
-		# GUI
-		Frame.__init__(self, window, bg="white", bd=16);
-		self.window = window;  # parent in this case
 
-		self.game = game;
+class Field(Frame):
+	def __init__(self, parent, game, player):
+		Frame.__init__(self, parent, bg="orange");
+
 		self.player = player;
+		self.label = Label(self, text=self.player.name);
+		self.label.grid(row=0, column=0, columnspan=2);
 
 
-class AIBoard(Board):
-	def __init__(self, window, game, player):
-		Board.__init__(self, window, game, player);
-		self.field = AIField(self, game, player);
-		self.field.grid(row=0, column=0);
+	def grid_ocean_and_ship_statuses(self):
+		print("FIELD::GRIDDING")
+		self.ocean.grid(row=1, column=0);
+		self.status.grid(row=1, column=1);
 
 
 
-class UserBoard(Board):
-	def __init__(self, window, game, player):
-		Board.__init__(self, window, game, player);
-		self.field = UserField(self, game, player);
-		self.field.grid(row=0, column=0);
+# AI Field is display only...you just get to watch
+class AIField(Field):
+	def __init__(self, parent, game, player):
+		Field.__init__(self, parent, game, player);
+
+		self.ocean = AIOcean(self);
+		self.status = [EnemyStatus, PlayerStatus][game.player_for_turn() == player](self, player);
+		self.grid_ocean_and_ship_statuses();
+
+
+
+class EnemyField(Field):
+	def __init__(self, parent, game, enemy):
+		Field.__init__(self, parent, game, enemy);
+
+		self.ocean = EnemyOcean(self, game, enemy);
+		self.status = EnemyStatus(self, enemy);
+		self.grid_ocean_and_ship_statuses();
+
+
+
+class PlayerField(Field):
+	def __init__(self, parent, game, player):
+		Field.__init__(self, parent, game, player);
+
+		self.ocean = PlayerOcean(self, game, player);
+		self.status = PlayerStatus(self, player);
+		self.grid_ocean_and_ship_statuses();

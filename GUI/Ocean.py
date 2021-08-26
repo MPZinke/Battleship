@@ -14,7 +14,7 @@ __author__ = "MPZinke"
 ########################################################################################################################
 
 
-from tkinter import Frame, Button;
+from tkinter import Frame, Button, Label;
 import platform;
 if(platform.system() == "Darwin"): from tkmacosx import Button;
 
@@ -26,7 +26,7 @@ def do_nothing(x, y):
 	print("Nothing done at [{},{},{}]".format(x, y, z));
 
 
-class Field(Frame):
+class Ocean(Frame):
 	def __init__(self, parent, game, player):
 		Frame.__init__(self, parent, bg="red");
 		self.parent = parent;
@@ -48,7 +48,7 @@ class Field(Frame):
 		button_points = [[x, y] for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 		for point in button_points:  # button columns should be in order
 			function = lambda x=point[0],y=point[1]: self.callback(x,y);
-			self.buttons[point[0]].append(Button(master=self, bg=WATER_CLR, text=OCEAN_CHAR, command=function));
+			self.buttons[point[0]].append(Button(master=self, bg=OCEAN_CLR, text=OCEAN_CHAR, command=function));
 			index(self.buttons, point).grid(row=point[0], column=point[1]);
 
 
@@ -80,7 +80,7 @@ class Field(Frame):
 
 
 	def redraw_field(self, ships):
-		[self.change_button_color([x,y], WATER_CLR) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
+		[self.change_button_color([x,y], OCEAN_CLR) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 		[self.change_button_text(point, OCEAN_CHAR) for ship in ships for point in ship.location.points];
 
 		[self.change_button_text(point, SHIP_CHAR) for ship in ships for point in ship.location.points];
@@ -92,9 +92,20 @@ class Field(Frame):
 
 
 
-class AIField(Field):
+# Used by an AI Board & Field to display to user the move it makes
+class AIOcean(Frame):
+	def __init__(self, parent):
+		Frame.__init__(self, parent);
+
+		kwargs = {"text": OCEAN_CHAR, "bg": OCEAN_CLR}
+		self.squares = [[Label(self, **kwargs) for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
+		[[self.squares[x][y].grid(row=x, column=y) for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
+
+
+
+class EnemyOcean(Ocean):
 	def __init__(self, parent, game, player):
-		Field.__init__(self, parent, game, player);
+		Ocean.__init__(self, parent, game, player);
 		self.callback = do_nothing;
 		self.assign_buttons();
 		self.disable_field_buttons();
@@ -105,9 +116,9 @@ class AIField(Field):
 
 
 
-class UserField(Field):
+class PlayerOcean(Ocean):
 	def __init__(self, parent, game, player):
-		Field.__init__(self, parent, game, player);
+		Ocean.__init__(self, parent, game, player);
 		# GUI::
 		# GUI::BUTTONS
 		self.callback = self.place_ships
@@ -155,7 +166,7 @@ class UserField(Field):
 
 			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], [x,y]).points;
 			for point in Location.usable_points(points):
-				color = {0: WATER_CLR, 1: SHIP_CLR}[Location.any_ship_overlap(self.player.ships, points=[point])];
+				color = {0: OCEAN_CLR, 1: SHIP_CLR}[Location.any_ship_overlap(self.player.ships, points=[point])];
 				self.change_button_color(point, color);
 
 		return function

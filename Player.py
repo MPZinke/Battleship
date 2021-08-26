@@ -123,11 +123,10 @@ class User(Player):
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
 	def attack(self):
-		pass
+		print("PEW PEW");  #TESTING
 
 
 	def turn(self):
-		print("My turn");
 		self.game.next_turn();
 
 

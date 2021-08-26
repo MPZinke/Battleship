@@ -8,7 +8,7 @@ HIT_CHAR = '×'
 MISS_CHAR = '○'
 SHIP_CHAR = 'S'
 
-WATER_CLR = "blue";
+OCEAN_CLR = "blue";
 SHIP_CLR = "gray";
 HIT_CLR = "red";
 
