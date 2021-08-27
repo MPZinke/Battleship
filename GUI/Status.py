@@ -21,8 +21,8 @@ from Ships import Ship;
 
 
 class ShipStatus:
-	def __init__(self, parent, ship):
-		self.id = ship["id"];
+	def __init__(self, parent, ship, ship_id):
+		self.id = ship_id;
 		self.name = ship["name"];
 		self.size = ship["size"];
 
@@ -45,7 +45,7 @@ class Status(Frame):
 		Frame.__init__(self, parent);
 		self.parent = parent;
 		self.player = player;
-		self.ship_statuses = {ship["id"]: ShipStatus(self, ship) for ship in Ship.SHIPS};
+		self.ship_statuses = {x: ShipStatus(self, ship, x) for x, ship in enumerate(Ship.SHIPS)};
 
 
 	def grid_ship_names(self):

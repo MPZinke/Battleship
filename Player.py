@@ -43,7 +43,7 @@ class Player:
 
 
 	def place_ships(self, x, y, orientation):
-		raise Exception("No function for placing ships in a child class");
+		raise Exception("No function for Player::place_ships defined in a child class");
 
 
 	def print(self):

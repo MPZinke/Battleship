@@ -59,11 +59,11 @@ class Location:
 
 class Ship:
 	SHIPS =	[
-				{"id": "Carrier1", "name": "Carrier", "size": 5},
-				{"id": "Battleship1", "name": "Battleship", "size": 4},
-				{"id": "Friggate1", "name": "Friggate", "size": 3},
-				{"id": "Friggate2", "name": "Friggate", "size": 3},
-				{"id": "Cruiser1", "name": "Cruiser", "size": 2}
+				{"id": "Carrier", "name": "Carrier", "size": 5},
+				{"id": "Battleship", "name": "Battleship", "size": 4},
+				{"id": "Friggate", "name": "Friggate", "size": 3},
+				{"id": "Submarine", "name": "Submarine", "size": 3},
+				{"id": "Cruiser", "name": "Cruiser", "size": 2}
 			];
 
 	def __init__(self, ship_id, name, size, location=None):
@@ -123,14 +123,14 @@ class Ship:
 	@staticmethod
 	def place_all_ships_randomly():
 		ships = [];
-		for ship in Ship.SHIPS:
+		for x, ship in enumerate(Ship.SHIPS):
 			# Keep trying to get a random location for the ships (up to 65536)
 			for x in range(0xFFFF):
 				location = Location.random_location(ship["size"]);
 
 				if(x == 0xFFFE): raise TooManyAttempts("The ship was unable to be placed in 65535 randomized attempts");
 				if(not Location.any_ship_overlap(ships, points=location.points)):
-					ships.append(Ship(ship["id"], ship["name"], ship["size"], location));
+					ships.append(Ship(x, ship["name"], ship["size"], location));
 					break;
 
 		return ships;

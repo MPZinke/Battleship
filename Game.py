@@ -14,6 +14,7 @@ __author__ = "MPZinke"
 ########################################################################################################################
 
 
+from random import randint;
 from time import sleep;
 
 from Player import AI, User;
@@ -21,21 +22,18 @@ from GUI.Window import Window;
 
 
 class Game:
-	def __init__(self):
+	def __init__(self, starting_player_number=0):
 		# Players in the game
 		self.players = [AI(self, "AI"), User(self, "MPZinke")];  # this is where it is defined whether single or multiplayer
-		self.enemy = self.players[0];  # Sugar
-		self.user = self.players[1];  # Sugar
+		self.current_player_number = starting_player_number;
 
 		self.is_ship_placement = True;  # whether the current goal of the game is to place ships (Ship Placement Simulator)
 		self.is_won = False;  # whether the game is finished/won
-		self.turn_count = 0;
+		self.turn_count = self.current_player_number;  # keep things in sync
 		self.winner = None;
 
 		# A Game has a Window which has 2 Boards, which each have a Field and an Status display.
 		self.window = Window(self);
-		# Let the games begin
-		# self.next_turn();
 
 
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
@@ -74,19 +72,21 @@ class Game:
 		# If user just went, play for them
 		if(not attacker.is_AI):
 			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, attacker.name));  #TESTING
-			self.turn_count += 1;
-			attacker, defender = defender, attacker;
-			self.window.switch_boards();
+			attacker, defender = self.increment_turn();
+			self.window.switch_boards(self.current_player_number);
 
-		# If next player is AI, let them move
+		# If next player is AI, let them move (up to 65536 moves)
 		while(attacker.is_AI and self.turn_count < 0xFFFF):
-			sleep(1);  # to give that authentic player experience
 			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, attacker.name));  #TESTING
 			attacker.turn();
-			self.turn_count += 1;
-			attacker, defender = defender, attacker;
-			self.window.switch_boards();
-			sleep(1);  # to give that authentic player experience
+			attacker, defender = self.increment_turn();
+			self.window.after(randint(1000, 3500), lambda x=self.current_player_number: self.window.switch_boards(x));
+
+
+	def increment_turn(self):
+		self.turn_count += 1;
+		self.current_player_number = self.player_number_for_turn();
+		return self.player_for_turn(), self.opposing_player_for_turn();
 
 
 	def is_over(self):

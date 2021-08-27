@@ -27,14 +27,14 @@ def do_nothing(x, y):
 
 
 class Ocean(Frame):
-	def __init__(self, parent, game, player):
-		Frame.__init__(self, parent, bg="red");
-		self.parent = parent;
+	def __init__(self, field, game, player):
+		Frame.__init__(self, field, bg="red");
+		self.field = field;
 		self.buttons = [[] for x in range(FIELD_SIZE)];
 
 		self.game = game;
 		self.player = player;
-		self.orientation = False;
+		self.callback = None;
 
 
 	# ——————————————————————————————————————————————————— BUTTONS  ——————————————————————————————————————————————————— #
@@ -64,13 +64,18 @@ class Ocean(Frame):
 		self.buttons[x][y]["state"] = "disabled" if(platform.system() == "Darwin") else "disable";
 
 
-	def disable_field_buttons(self):
+	def disable_buttons(self):
 		state = "disabled" if(platform.system() == "Darwin") else "disable";
 		[self.buttons[x][y].config(state=state) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 
 
-	def enable_field_buttons(self):
+	def enable_buttons(self, callback=None):
 		[self.buttons[x][y].config(state="normal") for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
+
+		if(callback):
+			self.callback = callback;
+			for x in range(FIELD_SIZE):
+				[self.buttons[x][y].config(command=lambda x=x, y=y: self.callback(x,y)) for y in range(FIELD_SIZE)];
 
 
 	# Gets all buttons specified as color.
@@ -94,21 +99,25 @@ class Ocean(Frame):
 
 # Used by an AI Board & Field to display to user the move it makes
 class AIOcean(Frame):
-	def __init__(self, parent):
-		Frame.__init__(self, parent);
+	def __init__(self, field):
+		Frame.__init__(self, field);
 
 		kwargs = {"text": OCEAN_CHAR, "bg": OCEAN_CLR}
 		self.squares = [[Label(self, **kwargs) for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
 		[[self.squares[x][y].grid(row=x, column=y) for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
 
 
+	def enable_buttons(self, callback=None):
+		return
+
+
 
 class EnemyOcean(Ocean):
-	def __init__(self, parent, game, player):
-		Ocean.__init__(self, parent, game, player);
+	def __init__(self, field, game, player):
+		Ocean.__init__(self, field, game, player);
 		self.callback = do_nothing;
 		self.assign_buttons();
-		self.disable_field_buttons();
+		self.disable_buttons();
 
 
 	def switch_orientation(self):
@@ -117,13 +126,14 @@ class EnemyOcean(Ocean):
 
 
 class PlayerOcean(Ocean):
-	def __init__(self, parent, game, player):
-		Ocean.__init__(self, parent, game, player);
+	def __init__(self, field, game, player):
+		Ocean.__init__(self, field, game, player);
 		# GUI::
 		# GUI::BUTTONS
 		self.callback = self.place_ships
 		self.assign_buttons();
-		self.add_hover(self.highlight_ship, self.unhighlight_ship)
+		self.add_hover(self.highlight_ship, self.unhighlight_ship);
+		self.orientation = False; # bool 0-horizontal, 1-vertical
 
 
 	def place_ships(self, x, y):
@@ -132,10 +142,10 @@ class PlayerOcean(Ocean):
 		# update previous ship squares, then next ship squares
 		[index(self.buttons, point).config(background=SHIP_CLR, text=SHIP_CHAR) for point in ship.location.points];
 		self.highlight_ship(x, y)(None);
-		# disable buttons if ship placing is complete
+		# Ship placing is complete: prepare for next phase by disabling buttons
 		if(self.player.ships_are_placed):
-			self.disable_field_buttons();
-			self.parent.window.boards[self.game.other_player_number(self.player)].field.enable_field_buttons();
+			self.disable_buttons();  # 
+			self.field.board.enemy_field.enable_ocean_buttons(self.player.shoot);  # allow attacking
 
 
 	def switch_orientation(self):
