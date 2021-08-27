@@ -35,7 +35,7 @@ class Game:
 		# A Game has a Window which has 2 Boards, which each have a Field and an Status display.
 		self.window = Window(self);
 		# Let the games begin
-		self.next_turn();
+		# self.next_turn();
 
 
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
@@ -76,17 +76,17 @@ class Game:
 			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, attacker.name));  #TESTING
 			self.turn_count += 1;
 			attacker, defender = defender, attacker;
-			# self.window.switch_boards();
+			self.window.switch_boards();
 
 		# If next player is AI, let them move
 		while(attacker.is_AI and self.turn_count < 0xFFFF):
-			# sleep(2);  # to give that authentic player experience
+			sleep(1);  # to give that authentic player experience
 			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, attacker.name));  #TESTING
 			attacker.turn();
 			self.turn_count += 1;
 			attacker, defender = defender, attacker;
-			# self.window.switch_boards();
-			sleep(0.5);  # to give that authentic player experience
+			self.window.switch_boards();
+			sleep(1);  # to give that authentic player experience
 
 
 	def is_over(self):

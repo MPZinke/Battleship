@@ -15,6 +15,8 @@ __author__ = "MPZinke"
 
 
 from tkinter import *;
+import platform;
+if(platform.system() == "Darwin"): from tkmacosx import Button;
 
 from Global import *;
 from GUI.Board import AIBoard, UserBoard;
@@ -33,16 +35,18 @@ class Window(Tk):
 		# A Board has two Fields, each of which has an Ocean and a Status display.
 		players, boards = game.players, [UserBoard, AIBoard]  #SUGAR
 		self.boards = [boards[players[x].is_AI](self, game, players[x], players[not x]) for x in range(2)];
-		# self.boards[1].grid(row=0, column=0);
-		# self.boards[1].grid_remove();
+		self.boards[1].grid(row=1, column=0);
+		self.boards[1].grid_remove();
 		self.boards[0].grid(row=0, column=0);
+		self.start_button = Button(self, text="Start", command=self.game.next_turn);
+		self.start_button.grid(row=2, column=0);
 
 
 	def switch_boards(self):
 		print("WINDOW::SWITCH_BOARDS")
 		player_number = self.game.player_number_for_turn();
-		self.boards[player_number].grid_remove();
-		self.boards[not player_number].grid();
+		self.boards[player_number].grid();
+		self.boards[not player_number].grid_remove();
 
 
 	def switch_ship_placement_orientation(self, e):
