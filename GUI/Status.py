@@ -17,7 +17,7 @@ __author__ = "MPZinke"
 from tkinter import Frame, Label;
 
 from Global import *;
-from Ships import Ship;
+from Ship import Ship;
 
 
 class ShipStatus:
@@ -27,22 +27,23 @@ class ShipStatus:
 		self.size = ship["size"];
 
 		self.parent = parent;
-		self.name_label = Label(parent, text=ship["name"]);
-		self.hits_label = Label(parent, text="".join([MISS_CHAR for x in range(self.size)]));
+		self.name_label = Label(parent, text=ship["name"], bg=WINDOW_BACKGROUND, fg="white");
+		kwargs = {"master": parent, "text": MISS_CHAR, "bg": WINDOW_BACKGROUND, "fg": "white"};
+		self.hits_labels= [Label(**kwargs) for x in range(self.size)];
 
 
 	def grid_name(self, x):
-		self.name_label.grid(row=x, column=0);
+		self.name_label.grid(row=x, column=0, sticky="W");
 
 
 	def grid_hits(self, x):
-		self.hits_label.grid(row=x, column=1);
+		[self.hits_labels[x].grid(row=x, column=1, sticky="W") for x in range(len(self.hits_labels))];
 
 
 
 class Status(Frame):
 	def __init__(self, parent, player):
-		Frame.__init__(self, parent);
+		Frame.__init__(self, parent, bg=WINDOW_BACKGROUND);
 		self.parent = parent;
 		self.player = player;
 		self.ship_statuses = {x: ShipStatus(self, ship, x) for x, ship in enumerate(Ship.SHIPS)};

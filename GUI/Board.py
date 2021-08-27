@@ -24,7 +24,7 @@ from GUI.Field import *;
 class Board(Frame):
 	def __init__(self, window, game, player, opponent):
 		# GUI
-		Frame.__init__(self, window, bg="white", bd=16);
+		Frame.__init__(self, window, bg=WINDOW_BACKGROUND, bd=16);
 		self.window = window;  # parent in this case
 		self.fields = None;
 		self.enemy_field = None;
@@ -45,7 +45,9 @@ class AIBoard(Board):
 	def __init__(self, window, game, ai, opponent):
 		Board.__init__(self, window, game, ai, opponent);
 		self.fields = [AIField(self, game, opponent), AIField(self, game, ai)];
-		[self.fields[x].grid(row=x, column=0) for x in range(len(self.fields))];
+		# [self.fields[x].grid(row=x, column=0) for x in range(len(self.fields))];
+		self.fields[0].grid(row=0, column=0, sticky="W")
+		self.fields[1].grid(row=1, column=0, sticky="W")
 
 		self.enemy_field, self.player_field = self.fields;  #SUGAR
 
@@ -59,7 +61,9 @@ class UserBoard(Board):
 	def __init__(self, window, game, user, opponent):
 		Board.__init__(self, window, game, user, opponent);
 		self.fields = [EnemyField(self, game, opponent), PlayerField(self, game, user)];
-		[self.fields[x].grid(row=x, column=0) for x in range(len(self.fields))];
+		# [self.fields[x].grid(row=x, column=0) for x in range(len(self.fields))];
+		self.fields[0].grid(row=0, column=0, sticky="W")
+		self.fields[1].grid(row=1, column=0, sticky="W")
 
 		self.enemy_field, self.player_field = self.fields;  #SUGAR
 

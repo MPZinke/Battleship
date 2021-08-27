@@ -19,7 +19,7 @@ import platform;
 if(platform.system() == "Darwin"): from tkmacosx import Button;
 
 from Global import *;
-from Ships import Location, Ship;
+from Ship import Location, Ship;
 
 
 def do_nothing(x, y):
@@ -28,7 +28,7 @@ def do_nothing(x, y):
 
 class Ocean(Frame):
 	def __init__(self, field, game, player):
-		Frame.__init__(self, field, bg="red");
+		Frame.__init__(self, field, bg=OCEAN_CLR);
 		self.field = field;
 		self.buttons = [[] for x in range(FIELD_SIZE)];
 
@@ -47,8 +47,9 @@ class Ocean(Frame):
 	def assign_buttons(self):
 		button_points = [[x, y] for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 		for point in button_points:  # button columns should be in order
-			function = lambda x=point[0],y=point[1]: self.callback(x,y);
-			self.buttons[point[0]].append(Button(master=self, bg=OCEAN_CLR, text=OCEAN_CHAR, command=function));
+			function = lambda x=point[0],y=point[1]: self.callback(x,y)
+			kwargs = {"master": self, "bg": OCEAN_CLR, "text": OCEAN_CHAR, "width": 25, "command": function};
+			self.buttons[point[0]].append(Button(**kwargs));
 			index(self.buttons, point).grid(row=point[0], column=point[1]);
 
 
@@ -75,7 +76,7 @@ class Ocean(Frame):
 		if(callback):
 			self.callback = callback;
 			for x in range(FIELD_SIZE):
-				[self.buttons[x][y].config(command=lambda x=x, y=y: self.callback(x,y)) for y in range(FIELD_SIZE)];
+				[self.buttons[x][y].config(command=lambda x=x, y=y: self.callback([x,y])) for y in range(FIELD_SIZE)];
 
 
 	# Gets all buttons specified as color.
@@ -102,7 +103,7 @@ class AIOcean(Frame):
 	def __init__(self, field):
 		Frame.__init__(self, field);
 
-		kwargs = {"text": OCEAN_CHAR, "bg": OCEAN_CLR}
+		kwargs = {"text": OCEAN_CHAR, "bg": OCEAN_CLR, "bd": 2, "relief": "solid", "padx": 4};
 		self.squares = [[Label(self, **kwargs) for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
 		[[self.squares[x][y].grid(row=x, column=y) for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
 
@@ -138,6 +139,7 @@ class PlayerOcean(Ocean):
 
 	def place_ships(self, x, y):
 		ship = self.player.place_ships(x, y, self.orientation);
+		if(not ship): return;  # invalid/unable to place ship. try again
 
 		# update previous ship squares, then next ship squares
 		[index(self.buttons, point).config(background=SHIP_CLR, text=SHIP_CHAR) for point in ship.location.points];
@@ -161,10 +163,7 @@ class PlayerOcean(Ocean):
 		def function(e):
 			if self.player.ships_are_placed: return;  # skip unnecessary work
 			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], [x,y]).points;
-
-			points_are_in_range = Location.points_are_in_range(points=points);
-			any_ship_overlap = Location.any_ship_overlap(self.player.ships, points=points);
-			color = {0: "red", 1: "green"}[points_are_in_range and not any_ship_overlap];
+			color = {0: "red", 1: "green"}[Location.valid_location(self.player.ships, points=points)];
 			[self.change_button_color(point, color) for point in Location.usable_points(points)];
 
 		return function

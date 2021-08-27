@@ -16,7 +16,7 @@ __author__ = "MPZinke"
 
 from Global import *
 
-from Ships import Location, Ship;
+from Ship import Location, Ship;
 
 
 class Player:
@@ -60,18 +60,26 @@ class Player:
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
 	# Function called when attacking another player.
-	def shoot(self, location):
-		if(self.shots[location[0]][location[1]]): raise AlreadyShot(location);
-		self.game.attack(self, location);
+	def shoot(self, point):
+		opponent = self.game.other_player_for_turn();
+		shot_ship = self.opponent.shot(point);
+		# Hit
+		if(shot_ship):
+			
+		# Miss
+		else:
 
 
 	# Function called when a player is being attacked by the other player.
-	def shot(self, location):
-		if(self.is_hit(location)):
-			ship = [ship for ship in self.ships if ship.is_hit(location)][0];
-			ship.hit(location);
-			self.game.update_player_board(player, location, True);
-			self.game.update_player_ship(player, ship);
+	def shot(self, point):
+		if(not self.is_hit(point)): return None; # Miss
+
+		# Hit
+		ship = [ship for ship in self.ships if ship.is_hit(point)][0];
+		ship.hit(point);
+		self.game.update_player_board(player, point, True);
+		self.game.update_player_ship(player, ship);
+		return ship;
 
 
 
@@ -133,9 +141,12 @@ class User(Player):
 	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
 
 	def place_ships(self, x, y, orientation):
-		print("\tUser: Placed ship");  #TESTING
 		ship = Ship.SHIPS[len(self.ships)];
-		self.ships.append(Ship(ship["id"], ship["name"], ship["size"], Location(orientation, ship["size"], [x,y])));
+		location = Location(orientation, ship["size"], [x,y]);
+		if(not Location.valid_location(self.ships, points=location.points)): return None;  # ensure a ship can go here
+
+		print("\tUser: Placed ship");  #TESTING
+		self.ships.append(Ship(ship["id"], ship["name"], ship["size"], location));
 		self.ships_are_placed = len(self.ships) == len(Ship.SHIPS);
 
 		self.game.next_turn();

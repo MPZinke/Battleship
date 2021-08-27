@@ -73,6 +73,7 @@ class Game:
 		if(not attacker.is_AI):
 			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, attacker.name));  #TESTING
 			attacker, defender = self.increment_turn();
+			#TODO: Check status of everything
 			self.window.switch_boards(self.current_player_number);
 
 		# If next player is AI, let them move (up to 65536 moves)
@@ -80,6 +81,7 @@ class Game:
 			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, attacker.name));  #TESTING
 			attacker.turn();
 			attacker, defender = self.increment_turn();
+			#TODO: Check status of everything
 			self.window.after(randint(1000, 3500), lambda x=self.current_player_number: self.window.switch_boards(x));
 
 

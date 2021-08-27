@@ -24,16 +24,16 @@ from GUI.Status import EnemyStatus, PlayerStatus;
 
 class Field(Frame):
 	def __init__(self, board, game, player):
-		Frame.__init__(self, board, bg="orange");
+		Frame.__init__(self, board, bg=WINDOW_BACKGROUND, highlightbackground="white", highlightthickness=2);
 		self.board = board;
-		self.label = Label(self, text=player.name);
+		self.label = Label(self, text=player.name, bg=WINDOW_BACKGROUND, fg="white");
 		self.label.grid(row=0, column=0, columnspan=2);
 
+		self.game = game;
 		self.player = player;
 
 
 	def grid_ocean_and_ship_statuses(self):
-		print("FIELD::GRIDDING")
 		self.ocean.grid(row=1, column=0);
 		self.status.grid(row=1, column=1);
 
