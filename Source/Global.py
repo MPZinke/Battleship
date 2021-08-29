@@ -5,7 +5,7 @@ __author__ = "MPZinke"
 ########################################################################################################################
 #                                                                                                                      #
 #   created by: MPZinke                                                                                                #
-#   on 2021.08.24                                                                                                      #
+#   on 2021.08.28                                                                                                      #
 #                                                                                                                      #
 #   DESCRIPTION:                                                                                                       #
 #   BUGS:                                                                                                              #
@@ -14,25 +14,37 @@ __author__ = "MPZinke"
 ########################################################################################################################
 
 
-
-class AlreadyShot(Exception):
-	def __init__(self, point):
-		Exception.__init__(self, message="Already Shot at point: [{},{}]".format(*point));
-
-
-
-class OutOfBounds(Exception):
-	def __init__(self, point):
-		Exception.__init__(self, message="[{},{}] is out of bounds".format(*point));
+# Gets the value at the specified index for a multidimensional list list.
+def index(multidimensional_list, point):
+	value = multidimensional_list;
+	for subindex in point:
+		value = value[subindex];
+	return value;
 
 
-
-class ShipInWay(Exception):
-	def __init__(self, point):
-		Exception.__init__(self, message="There is a conflicting ship at [{},{}]".format(*point));
-
+def is_mac():
+	from platform import system;
+	return system() == "Darwin";
 
 
-class TooManyAttempts(Exception):
-	def __init__(self, message):
-		Exception.__init__(self, message=message);
+# GAME
+FIELD_SIZE = 10
+
+# GUI
+# GUI::STYLING
+# GUI::STYLING::TITLES
+WINDOW_TITLE = "Battleship"
+# GUI::STYLING::CHARS
+OCEAN_CHAR = '  '
+OCEAN_CHAR_CLI = '~'
+HIT_CHAR = '×'
+MISS_CHAR = '○'
+SHIP_CHAR = 'S'
+# GUI::STYLING::COLORS
+HIT_CLR = "red";
+OCEAN_COLOR = "blue";
+SHIP_COLOR = "gray";
+WINDOW_BACKGROUND = "#444444"
+# GUI::FUNCTIONALITY
+DISABLE = "disabled" if(is_mac()) else "disable";
+

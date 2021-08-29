@@ -16,7 +16,6 @@ __author__ = "MPZinke"
 
 from tkinter import *;
 import platform;
-if(platform.system() == "Darwin"): from tkmacosx import Button;
 
 from Global import *;
 from GUI.Board import AIBoard, UserBoard;
@@ -53,12 +52,14 @@ class Window(Tk):
 		self.boards[self.current_board_number].switch_orientation();
 
 
-	def update_player_field(self, player_number, location, character):
-		self.boards[player_number].update_field(location, character);
+	def update_hit(self, player_number, point, ship_id, hit_index):
+		self.boards[not player_number].update_hit(point, ship_id, hit_index);
+		self.boards[player_number].update_enemy_ocean(point, HIT_CHAR);
 
 
-	def update_player_ships(self, player_number, ship_name, ship_point, character):
-		self.board[player_number].update_ship_point(ship_name, ship_point);
+	def update_miss(self, player_number, point):
+		self.boards[not player_number].update_player_ocean(point, MISS_CHAR);
+		self.boards[player_number].update_enemy_ocean(point, MISS_CHAR)
 
 
 	def current_board(self):

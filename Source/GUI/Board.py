@@ -40,6 +40,19 @@ class Board(Frame):
 		raise Exception("No function for Board::switch_orientation defined in a child class");
 
 
+	def update_hit(self, point, ship_id, hit_index):
+		self.player_field.update_ocean(point, HIT_CHAR);
+		self.player_field.update_status(point, ship_id, hit_index);
+
+
+	def update_enemy_ocean(self, point, char):
+		self.enemy_field.update_ocean(point, char);
+
+
+	def update_player_ocean(self, point, char):
+		self.player_field.update_ocean(point, char);
+
+
 
 class AIBoard(Board):
 	def __init__(self, window, game, ai, opponent):
@@ -65,7 +78,13 @@ class UserBoard(Board):
 		self.fields[0].grid(row=0, column=0, sticky="W")
 		self.fields[1].grid(row=1, column=0, sticky="W")
 
-		self.enemy_field, self.player_field = self.fields;  #SUGAR
+		self.enemy_field = self.fields[0];  #SUGAR
+		self.player_field = self.fields[1];  #SUGAR
+
+
+	def enable_player_to_attack_enemy(self):
+		self.player_field.ocean.disable_buttons();  # don't allow player to place ships anymore
+		self.enemy_field.enable_attacking(self.player);
 
 
 	def switch_orientation(self):

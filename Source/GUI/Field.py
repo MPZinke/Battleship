@@ -42,6 +42,14 @@ class Field(Frame):
 		self.ocean.enable_buttons(callback);
 
 
+	def update_status(self, point, ship_id, hit_index):
+		self.status.mark_ship_as_hit(ship_id, hit_index);
+
+
+	def update_ocean(self, point, char):
+		self.ocean.change_button_text(point, char);
+
+
 
 # AI Field is display only...you just get to watch
 class AIField(Field):
@@ -58,9 +66,25 @@ class EnemyField(Field):
 	def __init__(self, board, game, enemy):
 		Field.__init__(self, board, game, enemy);
 
-		self.ocean = EnemyOcean(self, game, enemy);
+		self.ocean = EnemyOcean(board, self, game, enemy);
 		self.status = EnemyStatus(self, enemy);
 		self.grid_ocean_and_ship_statuses();
+
+
+	# Attacking through the GUI will always be done by a User, so this function will always be called to increment by
+	#  the User.
+	def enable_attacking(self, player):
+		self.ocean.enable_buttons();
+		self.ocean.update_buttom_command(self.attack_and_increment_function_pointer(player));
+		print("attacking enabled")
+
+
+	# Creates a function pointer for calling the Game::attack function for a player.
+	def attack_and_increment_function_pointer(self, player):
+		def attack_function(point):
+			self.game.attack(point, player);
+			self.game.next_turn();
+		return attack_function;
 
 
 
@@ -68,6 +92,6 @@ class PlayerField(Field):
 	def __init__(self, board, game, player):
 		Field.__init__(self, board, game, player);
 
-		self.ocean = PlayerOcean(self, game, player);
+		self.ocean = PlayerOcean(board, self, game, player);
 		self.status = PlayerStatus(self, player);
 		self.grid_ocean_and_ship_statuses();

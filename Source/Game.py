@@ -48,41 +48,27 @@ class Game:
 		defender.shot(location);
 
 
-	# Updates a player field for an attack.
-	def update_player_field(self, player, location, is_hit):
-		player_number = self.player_number(player);
-		self.window.update_field(player_number, location, HIT_CHAR if is_hit else MISS_CHAR);
-
-
-	def update_player_ship(self, player, ship_id, ship_point, character):
-		player_number = self.player_number(player);
-		self.window.update_player_ship(player_number, ship_id, ship_point, character);
-
-
 	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #
 
 	def mainloop(self):
 		self.window.mainloop();
 
 
-	def next_turn(self):
-		attacker = self.player_for_turn();
-		defender = self.opposing_player_for_turn();
-		
-		# If user just went, play for them
-		if(not attacker.is_AI):
-			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, attacker.name));  #TESTING
-			attacker, defender = self.increment_turn();
-			#TODO: Check status of everything
-			self.window.switch_boards(self.current_player_number);
+	def attack(self, point, attacker):
+		opponent = self.opposing_player_for_turn();
+		shot_ship = opponent.shot(point);
+		if(shot_ship): 
+			print("{} HIT {}'s {} at [{},{}]".format(attacker.name, opponent.name, shot_ship.name, *point));  #TESTING
+			self.window.update_hit(self.current_player_number, point, shot_ship.id, shot_ship.start_offset(point));
+		else:
+			print("{} MISSED at point [{},{}]".format(attacker.name, *point));
+			self.window.update_miss(self.current_player_number, point);
+		# update attacker
+		# update opponent
 
-		# If next player is AI, let them move (up to 65536 moves)
-		while(attacker.is_AI and self.turn_count < 0xFFFF):
-			print("Turn: {}\n\tPlayer: {}".format(self.turn_count, attacker.name));  #TESTING
-			attacker.turn();
-			attacker, defender = self.increment_turn();
-			#TODO: Check status of everything
-			self.window.after(randint(1000, 3500), lambda x=self.current_player_number: self.window.switch_boards(x));
+		# update attacker GUI
+		# update opponent GUI
+
 
 
 	def increment_turn(self):
@@ -101,6 +87,26 @@ class Game:
 
 	def is_players_turn(self, player):
 		return player == self.players[self.turn_count & 1];
+
+
+	def next_turn(self):
+		attacker = self.player_for_turn();
+		defender = self.opposing_player_for_turn();
+		
+		# If user just went, play for them
+		if(not attacker.is_AI):
+			attacker, defender = self.increment_turn();
+			#TODO: Check status of everything
+			self.window.switch_boards(self.current_player_number);
+
+		# If next player is AI, let them move (up to 65536 moves)
+		while(attacker.is_AI and self.turn_count < 0xFFFF):
+			attacker.turn();
+			attacker, defender = self.increment_turn();
+			#TODO: Check status of everything
+			self.window.after(0, lambda x=self.current_player_number: self.window.switch_boards(x));
+			# self.window.after(randint(1000, 3500), lambda x=self.current_player_number: self.window.switch_boards(x));
+
 
 
 	# ———————————————————————————————————————————————————  GETTERS ——————————————————————————————————————————————————— #

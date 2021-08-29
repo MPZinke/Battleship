@@ -14,8 +14,9 @@ __author__ = "MPZinke"
 ########################################################################################################################
 
 
-from Global import *
+from random import randint;
 
+from Global import *
 from Ship import Location, Ship;
 
 
@@ -27,13 +28,8 @@ class Player:
 		self.ships_are_placed = False;  # whether the ships for the player have been placed
 		self.name = name;
 		self.ships = [];
-		self.shots = [[False] * FIELD_SIZE] * FIELD_SIZE;  # places opponent has shot
-
-
-	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
-
-	def is_hit(self, location):
-		return any(ship.is_hit(location) for ship in self.ships);
+		self.player_shots = [];  # list of points where player has attacked the enemy
+		self.enemy_shots = [[False for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];  # places opponent has shot
 
 
 	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
@@ -42,7 +38,7 @@ class Player:
 		return self.ships[-1] if self.ships else None;
 
 
-	def place_ships(self, x, y, orientation):
+	def place_ships(self, point, orientation):
 		raise Exception("No function for Player::place_ships defined in a child class");
 
 
@@ -51,7 +47,7 @@ class Player:
 			row = "";
 			for y in range(FIELD_SIZE):
 				value = 1;
-				bools = [self.is_hit([x,y]), self.shots[x][y], self.is_hit([x,y]) and self.shots[x][y]];
+				bools = [self.is_hit([x,y]), self.enemy_shots[x][y], self.is_hit([x,y]) and self.enemy_shots[x][y]];
 				for x in range(len(bools)): value = bools[x] * (1 << x) + (not bools[x] * value);
 				row += {1: OCEAN_CHAR_CLI, 2: SHIP_CHAR, 4: MISS_CHAR, 8: HIT_CHAR}[value];
 			print(row);
@@ -59,27 +55,25 @@ class Player:
 
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
+	def hits_ship(self, point):
+		return any(ship.hits_ship(point) for ship in self.ships);
+
+
 	# Function called when attacking another player.
+	# Player is SHOOTing opponent.
 	def shoot(self, point):
-		opponent = self.game.other_player_for_turn();
-		shot_ship = self.opponent.shot(point);
 		# Hit
-		if(shot_ship):
+		if(shot_ship): pass
 			
 		# Miss
-		else:
+		else: pass 
 
 
 	# Function called when a player is being attacked by the other player.
+	# Player is being SHOT by opponent.
 	def shot(self, point):
-		if(not self.is_hit(point)): return None; # Miss
-
-		# Hit
-		ship = [ship for ship in self.ships if ship.is_hit(point)][0];
-		ship.hit(point);
-		self.game.update_player_board(player, point, True);
-		self.game.update_player_ship(player, ship);
-		return ship;
+		try: return [ship for ship in self.ships if ship.shot(point)][0];
+		except: None;
 
 
 
@@ -100,7 +94,7 @@ class AI(Player):
 
 	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
 
-	def place_ships(self, x, y, orientation):
+	def place_ships(self):
 		self.ships.append(Ship.place_single_ship_randomly(Ship.SHIPS[len(self.ships)], self.ships));
 		self.ships_are_placed = len(self.ships) == len(Ship.SHIPS);
 
@@ -109,11 +103,13 @@ class AI(Player):
 
 	def turn(self):
 		if(not self.ships_are_placed):
-			print("\tAI: Placed Ship");  #TESTING
-			self.place_ships(0, 0, 0);
+			self.place_ships();
+			print("\tAI: Placed Ship at {}".format(str(self.ships[-1].location.points[0])));  #TESTING
 		# Try to attack and prepare to be attacked
 		else:
-			print("ATTACK");
+			point = [randint(0,9), randint(0,9)];
+			self.game.attack(point, self);
+			# print("{} attacked at [{},{}]".format(self.name, point[0], point[1]));
 
 
 
@@ -140,13 +136,13 @@ class User(Player):
 
 	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
 
-	def place_ships(self, x, y, orientation):
+	def place_ships(self, point, orientation):
 		ship = Ship.SHIPS[len(self.ships)];
-		location = Location(orientation, ship["size"], [x,y]);
+		location = Location(orientation, ship["size"], point);
 		if(not Location.valid_location(self.ships, points=location.points)): return None;  # ensure a ship can go here
 
 		print("\tUser: Placed ship");  #TESTING
-		self.ships.append(Ship(ship["id"], ship["name"], ship["size"], location));
+		self.ships.append(Ship(len(self.ships), ship["name"], ship["size"], location));
 		self.ships_are_placed = len(self.ships) == len(Ship.SHIPS);
 
 		self.game.next_turn();

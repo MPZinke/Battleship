@@ -16,67 +16,72 @@ __author__ = "MPZinke"
 
 from tkinter import Frame, Button, Label;
 import platform;
-if(platform.system() == "Darwin"): from tkmacosx import Button;
 
 from Global import *;
 from Ship import Location, Ship;
+
+if(is_mac()): from tkmacosx import Button;
 
 
 def do_nothing(x, y):
 	print("Nothing done at [{},{},{}]".format(x, y, z));
 
 
+def lambda_helper(function, *args):
+	if(len(args) == 0): return lambda: function();
+	if(len(args) == 1): return lambda w=args[0]: function(w);
+	if(len(args) == 2): return lambda w=args[0], x=args[1]: function(w,x);
+	if(len(args) == 2): return lambda w=args[0], x=args[1], y=args[2]: function(w,x,y);
+	if(len(args) == 2): return lambda w=args[0], x=args[1], y=args[2], z=args[3]: function(w,x,y,z);
+
+
+
 class Ocean(Frame):
-	def __init__(self, field, game, player):
-		Frame.__init__(self, field, bg=OCEAN_CLR);
-		self.field = field;
+	def __init__(self, board, field, game, player):
+		Frame.__init__(self, field, bg=OCEAN_COLOR);
+		self.board = board;
 		self.buttons = [[] for x in range(FIELD_SIZE)];
 
 		self.game = game;
 		self.player = player;
-		self.callback = None;
 
 
 	# ——————————————————————————————————————————————————— BUTTONS  ——————————————————————————————————————————————————— #
 
 	def add_hover(self, enter, leave):
-		[self.buttons[x][y].bind("<Enter>", enter(x, y)) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
-		[self.buttons[x][y].bind("<Leave>", leave(x, y)) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
+		[self.buttons[x][y].bind("<Enter>", enter([x,y])) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
+		[self.buttons[x][y].bind("<Leave>", leave([x,y])) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 
 
-	def assign_buttons(self):
+	def assign_buttons(self, callback):
 		button_points = [[x, y] for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 		for point in button_points:  # button columns should be in order
-			function = lambda x=point[0],y=point[1]: self.callback(x,y)
-			kwargs = {"master": self, "bg": OCEAN_CLR, "text": OCEAN_CHAR, "width": 25, "command": function};
+			function = lambda_helper(callback, point);
+			kwargs = {"master": self, "bg": OCEAN_COLOR, "text": OCEAN_CHAR, "fg": "white", "width": 25, "command": function};
+			kwargs.update({"disabledbackground": OCEAN_COLOR, "disabledforeground": "white"})
 			self.buttons[point[0]].append(Button(**kwargs));
 			index(self.buttons, point).grid(row=point[0], column=point[1]);
 
 
-	def change_button_color(self, location, symbol):
-		index(self.buttons, location)["background"] = symbol;
+	def change_button_color(self, point, color):
+		button = index(self.buttons, point);
+		button[["bg", "disabledforeground"]["disable" in button["state"]]] = color;
 
 
-	def change_button_text(self, location, symbol):
-		index(self.buttons, location)["text"] = symbol;
+	def change_button_text(self, point, symbol):
+		index(self.buttons, point)["text"] = symbol;
 
 
-	def disable_button(self, x, y):
-		self.buttons[x][y]["state"] = "disabled" if(platform.system() == "Darwin") else "disable";
+	def disable_button(self, point):
+		index(self.buttons, point)["state"] = DISABLE;
 
 
 	def disable_buttons(self):
-		state = "disabled" if(platform.system() == "Darwin") else "disable";
-		[self.buttons[x][y].config(state=state) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
+		[self.buttons[x][y].config(state=DISABLE) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 
 
-	def enable_buttons(self, callback=None):
+	def enable_buttons(self):
 		[self.buttons[x][y].config(state="normal") for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
-
-		if(callback):
-			self.callback = callback;
-			for x in range(FIELD_SIZE):
-				[self.buttons[x][y].config(command=lambda x=x, y=y: self.callback([x,y])) for y in range(FIELD_SIZE)];
 
 
 	# Gets all buttons specified as color.
@@ -86,15 +91,21 @@ class Ocean(Frame):
 
 
 	def redraw_field(self, ships):
-		[self.change_button_color([x,y], OCEAN_CLR) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
+		[self.change_button_color([x,y], OCEAN_COLOR) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 		[self.change_button_text(point, OCEAN_CHAR) for ship in ships for point in ship.location.points];
 
 		[self.change_button_text(point, SHIP_CHAR) for ship in ships for point in ship.location.points];
 		for ship in self.player.ships:
 			for point in ship.location.points:
-				char, color = [[SHIP_CHAR, SHIP_CLR], [HIT_CHAR, HIT_CLR]][ship.is_hit(point)];
+				char, color = [[SHIP_CHAR, SHIP_COLOR], [HIT_CHAR, HIT_CLR]][ship.is_hit(point)];
 				self.change_button_text(point, char);
 				self.change_button_color(point, color);
+
+
+	def update_buttom_command(self, callback, *args):
+		for x in range(FIELD_SIZE):
+			for y in range(FIELD_SIZE):
+				self.buttons[x][y].config(command=lambda_helper(callback, [x,y], *args));
 
 
 
@@ -103,7 +114,7 @@ class AIOcean(Frame):
 	def __init__(self, field):
 		Frame.__init__(self, field);
 
-		kwargs = {"text": OCEAN_CHAR, "bg": OCEAN_CLR, "bd": 2, "relief": "solid", "padx": 4};
+		kwargs = {"text": OCEAN_CHAR, "bg": OCEAN_COLOR, "bd": 2, "relief": "solid", "padx": 4, "fg": "white"};
 		self.squares = [[Label(self, **kwargs) for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
 		[[self.squares[x][y].grid(row=x, column=y) for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
 
@@ -112,12 +123,15 @@ class AIOcean(Frame):
 		return
 
 
+	def change_button_text(self, point, symbol):
+		index(self.squares, point)["text"] = symbol;
+
+
 
 class EnemyOcean(Ocean):
-	def __init__(self, field, game, player):
-		Ocean.__init__(self, field, game, player);
-		self.callback = do_nothing;
-		self.assign_buttons();
+	def __init__(self, board, field, game, player):
+		Ocean.__init__(self, board, field, game, player);
+		self.assign_buttons(do_nothing);
 		self.disable_buttons();
 
 
@@ -127,55 +141,58 @@ class EnemyOcean(Ocean):
 
 
 class PlayerOcean(Ocean):
-	def __init__(self, field, game, player):
-		Ocean.__init__(self, field, game, player);
+	def __init__(self, board, field, game, player):
+		Ocean.__init__(self, board, field, game, player);
 		# GUI::
 		# GUI::BUTTONS
-		self.callback = self.place_ships
-		self.assign_buttons();
+		self.assign_buttons(self.place_ships);
 		self.add_hover(self.highlight_ship, self.unhighlight_ship);
 		self.orientation = False; # bool 0-horizontal, 1-vertical
 
 
-	def place_ships(self, x, y):
-		ship = self.player.place_ships(x, y, self.orientation);
+	def enable_player_to_attack_enemy(self):
+		self.board.enable_player_to_attack_enemy();
+
+
+	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
+
+	def place_ships(self, point):
+		ship = self.player.place_ships(point, self.orientation);
 		if(not ship): return;  # invalid/unable to place ship. try again
 
 		# update previous ship squares, then next ship squares
-		[index(self.buttons, point).config(background=SHIP_CLR, text=SHIP_CHAR) for point in ship.location.points];
-		self.highlight_ship(x, y)(None);
+		[index(self.buttons, point).config(background=SHIP_COLOR, text=SHIP_CHAR) for point in ship.location.points];
+		self.highlight_ship(point)(None);
 		# Ship placing is complete: prepare for next phase by disabling buttons
-		if(self.player.ships_are_placed):
-			self.disable_buttons();  # 
-			self.field.board.enemy_field.enable_ocean_buttons(self.player.shoot);  # allow attacking
+		if(self.player.ships_are_placed): self.enable_player_to_attack_enemy();
 
 
 	def switch_orientation(self):
 		highlighted = self.colored_buttons("green") + self.colored_buttons("yellow") + self.colored_buttons("red");
 		if(not highlighted): self.orientation ^= 1;
 		else:
-			self.unhighlight_ship(*(highlighted[0]))(None);
+			self.unhighlight_ship(highlighted[0])(None);
 			self.orientation ^= 1;
-			self.highlight_ship(*(highlighted[0]))(None);
+			self.highlight_ship(highlighted[0])(None);
 
 
-	def highlight_ship(self, x, y):
+	def highlight_ship(self, x_y):
 		def function(e):
 			if self.player.ships_are_placed: return;  # skip unnecessary work
-			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], [x,y]).points;
+			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], x_y).points;
 			color = {0: "red", 1: "green"}[Location.valid_location(self.player.ships, points=points)];
 			[self.change_button_color(point, color) for point in Location.usable_points(points)];
 
 		return function
 
 
-	def unhighlight_ship(self, x, y):
+	def unhighlight_ship(self, x_y):
 		def function(e):
 			if self.player.ships_are_placed: return;  # skip unnecessary work
 
-			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], [x,y]).points;
+			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], x_y).points;
 			for point in Location.usable_points(points):
-				color = {0: OCEAN_CLR, 1: SHIP_CLR}[Location.any_ship_overlap(self.player.ships, points=[point])];
+				color = {0: OCEAN_COLOR, 1: SHIP_COLOR}[Location.any_ship_overlap(self.player.ships, points=[point])];
 				self.change_button_color(point, color);
 
 		return function
