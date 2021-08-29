@@ -62,9 +62,12 @@ class Game:
 		if(shot_ship): 
 			print("{} HIT {}'s {} at [{},{}]".format(attacker.name, opponent.name, shot_ship.name, *point));  #TESTING
 			self.window.update_hit(point, attacker, shot_ship.id, shot_ship.start_offset(point));
+			if(shot_ship.is_sunk()): self.window.mark_players_ship_as_sunk(attacker, shot_ship.id);
 		else:
 			print("{} MISSED at point [{},{}]".format(attacker.name, *point));
 			self.window.update_miss(self.current_player_number, point);
+
+		return bool(shot_ship);
 
 
 	def increment_turn(self):

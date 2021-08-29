@@ -42,14 +42,16 @@ class Window(Tk):
 		if(game.player_for_turn().is_AI): self.after(1000, game.next_turn);  # start the first turn
 
 
+	# ———————————————————————————————————————————————— UPDATE  WINDOW ———————————————————————————————————————————————— #
+
+	def mark_players_ship_as_sunk(self, player, ship_id):
+		[board.mark_players_ship_as_sunk(player, ship_id) for board in self.boards];
+
+
 	# Works for 2+ players.
 	def switch_boards(self, player_number):
 		[getattr(self.boards[x], "grid" if x == player_number else "grid_remove")() for x in range(len(self.boards))];
 		self.current_board_number = player_number;
-
-
-	def switch_ship_placement_orientation(self, e):
-		self.boards[self.current_board_number].switch_orientation();
 
 
 	# Player is the one who shot and hit someone.
@@ -62,5 +64,13 @@ class Window(Tk):
 		self.boards[player_number].update_enemy_ocean(point, char=MISS_CHAR)
 
 
+	# ——————————————————————————————————————————————————— GETTERS  ——————————————————————————————————————————————————— #
+
 	def current_board(self):
 		return self.boards[self.player_number_for_turn()];
+
+
+	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
+
+	def switch_ship_placement_orientation(self, e):
+		self.boards[self.current_board_number].switch_orientation();

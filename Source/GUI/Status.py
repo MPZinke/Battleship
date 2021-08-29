@@ -44,6 +44,11 @@ class ShipStatus:
 		self.hits_labels[index]["text"] = HIT_CHAR;
 
 
+	def mark_sunk(self):
+		self.name_label["fg"] = HIT_COLOR;
+		[hit_label.config(fg=HIT_COLOR) for hit_label in self.hits_labels];
+
+
 
 class Status(Frame):
 	def __init__(self, parent, player):
@@ -59,6 +64,10 @@ class Status(Frame):
 
 	def mark_ship_as_hit(self, ship_id, hit_index):
 		self.ship_statuses[ship_id].mark_hit(hit_index);
+
+
+	def mark_ship_as_sunk(self, ship_id):
+		self.ship_statuses[ship_id].mark_sunk();
 
 
 

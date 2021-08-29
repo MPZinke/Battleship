@@ -129,7 +129,7 @@ class Ship:
 
 		# Mark where on the ship it was hit
 		orientation = self.location.orientation;
-		self.hits[point[not orientation] - self.location.points[0][not orientation]] = True;
+		self.hits[point[orientation] - self.location.points[0][orientation]] = True;
 		return True;
 
 

@@ -33,13 +33,21 @@ class Field(Frame):
 		self.player = player;
 
 
+	# ————————————————————————————————————————————————— UPDATE FIELD ————————————————————————————————————————————————— #
+
 	def grid_ocean_and_ship_statuses(self):
 		self.ocean.grid(row=1, column=0);
 		self.status.grid(row=1, column=1);
 
 
+	# ————————————————————————————————————————————————— UPDATE FIELD ————————————————————————————————————————————————— #
+
 	def enable_ocean_buttons(self, callback=None):
 		self.ocean.enable_buttons(callback);
+
+
+	def mark_ship_as_sunk(self, ship_id):
+		self.status.mark_ship_as_sunk(ship_id);
 
 
 	def update_status(self, point, ship_id, hit_index):
@@ -72,6 +80,8 @@ class EnemyField(Field):
 		self.grid_ocean_and_ship_statuses();
 
 
+	# —————————————————————————————————————————————————— ATTACKING  —————————————————————————————————————————————————— #
+
 	# Creates a function pointer for calling the Game::attack function for a player.
 	def attack_and_increment_function_pointer(self, player):
 		def attack_function(point):
@@ -87,6 +97,8 @@ class EnemyField(Field):
 		self.ocean.update_buttom_command(self.attack_and_increment_function_pointer(player));
 		print("attacking enabled")
 
+
+	# ————————————————————————————————————————————————— UPDATE FIELD ————————————————————————————————————————————————— #
 
 	def update_status(self, *args):
 		return

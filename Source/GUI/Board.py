@@ -36,17 +36,28 @@ class Board(Frame):
 		self.orientation = False;
 
 
+	# ———————————————————————————————————————————————————  GETTERS ——————————————————————————————————————————————————— #
+
 	def field_for_opponent(self, opponent):
 		return self.fields[self.opponent == opponent];
 
 
 	# Return the field for the specified player.
 	def field_for_player(self, player):
-		return self.fields[self.player == player];
+		return self.fields[not (self.player == player)];
 
+
+	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
 
 	def switch_orientation(self):
 		raise Exception("No function for Board::switch_orientation defined in a child class");
+
+
+	# ————————————————————————————————————————————————— UPDATE BOARD ————————————————————————————————————————————————— #
+
+	def mark_players_ship_as_sunk(self, player, ship_id):
+		field = self.field_for_player(player);
+		field.mark_ship_as_sunk(ship_id);
 
 
 	# The player has hit their opponent. Update the player's board to reflect it.
