@@ -27,8 +27,8 @@ class Board(Frame):
 		Frame.__init__(self, window, bg=WINDOW_BACKGROUND, bd=16);
 		self.window = window;  # parent in this case
 		self.fields = None;
-		self.enemy_field = None;
-		self.player_field = None;
+		self.enemy_field = None;  # first (top) field assuming this is my board
+		self.player_field = None;  # second (bottom) field assuming this is my board
 
 		self.game = game;
 		self.player = player;
@@ -36,21 +36,33 @@ class Board(Frame):
 		self.orientation = False;
 
 
+	def field_for_opponent(self, opponent):
+		return self.fields[self.opponent == opponent];
+
+
+	# Return the field for the specified player.
+	def field_for_player(self, player):
+		return self.fields[self.player == player];
+
+
 	def switch_orientation(self):
 		raise Exception("No function for Board::switch_orientation defined in a child class");
 
 
-	def update_hit(self, point, ship_id, hit_index):
-		self.player_field.update_ocean(point, HIT_CHAR);
-		self.player_field.update_status(point, ship_id, hit_index);
+	# The player has hit their opponent. Update the player's board to reflect it.
+	# Takes the point to update, the player that made the hit
+	def update_hit_on_board(self, point, player, ship_id, hit_index):
+		field = self.field_for_opponent(player);  # player attacked opponent's field; update opponent
+		field.update_ocean(point, char=HIT_CHAR, color=HIT_COLOR);
+		field.update_status(point, ship_id, hit_index);
 
 
-	def update_enemy_ocean(self, point, char):
-		self.enemy_field.update_ocean(point, char);
+	def update_enemy_ocean(self, point, **kwargs):
+		self.enemy_field.update_ocean(point, **kwargs);
 
 
-	def update_player_ocean(self, point, char):
-		self.player_field.update_ocean(point, char);
+	def update_player_ocean(self, point, **kwargs):
+		self.player_field.update_ocean(point, **kwargs);
 
 
 

@@ -46,8 +46,9 @@ class Field(Frame):
 		self.status.mark_ship_as_hit(ship_id, hit_index);
 
 
-	def update_ocean(self, point, char):
-		self.ocean.change_button_text(point, char);
+	def update_ocean(self, point, **kwargs):
+		if("char" in kwargs): self.ocean.change_button_text(point, kwargs["char"]);
+		if("color" in kwargs): self.ocean.change_button_color(point, kwargs["color"]);
 
 
 
@@ -71,6 +72,14 @@ class EnemyField(Field):
 		self.grid_ocean_and_ship_statuses();
 
 
+	# Creates a function pointer for calling the Game::attack function for a player.
+	def attack_and_increment_function_pointer(self, player):
+		def attack_function(point):
+			self.game.attack(point, player);
+			self.game.next_turn();
+		return attack_function;
+
+
 	# Attacking through the GUI will always be done by a User, so this function will always be called to increment by
 	#  the User.
 	def enable_attacking(self, player):
@@ -79,12 +88,8 @@ class EnemyField(Field):
 		print("attacking enabled")
 
 
-	# Creates a function pointer for calling the Game::attack function for a player.
-	def attack_and_increment_function_pointer(self, player):
-		def attack_function(point):
-			self.game.attack(point, player);
-			self.game.next_turn();
-		return attack_function;
+	def update_status(self, *args):
+		return
 
 
 

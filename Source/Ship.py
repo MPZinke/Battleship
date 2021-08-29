@@ -22,7 +22,7 @@ from Exceptions import *;
 
 class Location:
 	def __init__(self, orientation, span, start):
-		self.orientation = orientation;  # bool 0-horizontal, 1-vertical
+		self.orientation = orientation;  # bool 0-vertical, 1-horizontal
 		self.points = [[start[0], start[1]+x] if orientation else [start[0]+x, start[1]] for x in range(span)];
 		self.span = span;  # the length of the points
 		self.start = start;  # starting point
@@ -135,9 +135,8 @@ class Ship:
 
 	# Returns the 1D offset from the start of a ship.
 	def start_offset(self, point):
-		orientation = self.location.orientation;
 		if(point not in self.location.points): raise NotShipPoint(point);
-		return point[not orientation] - self.location.points[0][not orientation];
+		return point[self.location.orientation] - self.location.points[0][self.location.orientation];
 
 
 	@staticmethod

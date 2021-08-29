@@ -64,8 +64,7 @@ class Ocean(Frame):
 
 
 	def change_button_color(self, point, color):
-		button = index(self.buttons, point);
-		button[["bg", "disabledforeground"]["disable" in button["state"]]] = color;
+		index(self.buttons, point)["bg"] = color;
 
 
 	def change_button_text(self, point, symbol):
@@ -97,7 +96,7 @@ class Ocean(Frame):
 		[self.change_button_text(point, SHIP_CHAR) for ship in ships for point in ship.location.points];
 		for ship in self.player.ships:
 			for point in ship.location.points:
-				char, color = [[SHIP_CHAR, SHIP_COLOR], [HIT_CHAR, HIT_CLR]][ship.is_hit(point)];
+				char, color = [[SHIP_CHAR, SHIP_COLOR], [HIT_CHAR, HIT_COLOR]][ship.is_hit(point)];
 				self.change_button_text(point, char);
 				self.change_button_color(point, color);
 
@@ -125,6 +124,10 @@ class AIOcean(Frame):
 
 	def change_button_text(self, point, symbol):
 		index(self.squares, point)["text"] = symbol;
+
+
+	def change_button_color(self, point, color):
+		index(self.squares, point)["bg"] = color;
 
 
 

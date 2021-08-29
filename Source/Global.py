@@ -41,7 +41,7 @@ HIT_CHAR = '×'
 MISS_CHAR = '○'
 SHIP_CHAR = 'S'
 # GUI::STYLING::COLORS
-HIT_CLR = "red";
+HIT_COLOR = "red";
 OCEAN_COLOR = "blue";
 SHIP_COLOR = "gray";
 WINDOW_BACKGROUND = "#444444"

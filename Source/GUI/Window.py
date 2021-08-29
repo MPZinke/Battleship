@@ -52,14 +52,14 @@ class Window(Tk):
 		self.boards[self.current_board_number].switch_orientation();
 
 
-	def update_hit(self, player_number, point, ship_id, hit_index):
-		self.boards[not player_number].update_hit(point, ship_id, hit_index);
-		self.boards[player_number].update_enemy_ocean(point, HIT_CHAR);
+	# Player is the one who shot and hit someone.
+	def update_hit(self, point, player, ship_id, hit_index):
+		[board.update_hit_on_board(point, player, ship_id, hit_index) for board in self.boards];
 
 
 	def update_miss(self, player_number, point):
-		self.boards[not player_number].update_player_ocean(point, MISS_CHAR);
-		self.boards[player_number].update_enemy_ocean(point, MISS_CHAR)
+		self.boards[not player_number].update_player_ocean(point, char=MISS_CHAR);
+		self.boards[player_number].update_enemy_ocean(point, char=MISS_CHAR)
 
 
 	def current_board(self):

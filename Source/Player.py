@@ -16,18 +16,21 @@ __author__ = "MPZinke"
 
 from random import randint;
 
-from Global import *
+from Global import *;
 from Ship import Location, Ship;
 
 
 class Player:
-	def __init__(self, game, name, **kwargs):
+	def __init__(self, game, player_id, name, **kwargs):
 		self.game = game;
 
-		self.is_AI = kwargs.get("is_AI", False);
-		self.ships_are_placed = False;  # whether the ships for the player have been placed
+		self.id = player_id;
 		self.name = name;
+		self.is_AI = kwargs.get("is_AI", False);
+		# SHIPS
+		self.ships_are_placed = False;  # whether the ships for the player have been placed
 		self.ships = [];
+		# ATTACKS
 		self.player_shots = [];  # list of points where player has attacked the enemy
 		self.enemy_shots = [[False for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];  # places opponent has shot
 
@@ -55,31 +58,31 @@ class Player:
 
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
-	def hits_ship(self, point):
+	# Return if a shot hits a ship.
+	def hits_a_ship(self, point):
 		return any(ship.hits_ship(point) for ship in self.ships);
 
 
 	# Function called when attacking another player.
 	# Player is SHOOTing opponent.
 	def shoot(self, point):
-		# Hit
-		if(shot_ship): pass
-			
-		# Miss
-		else: pass 
+		if(point in self.player_shots): return False;
+		self.player_shots.append(point);
 
 
 	# Function called when a player is being attacked by the other player.
 	# Player is being SHOT by opponent.
 	def shot(self, point):
-		try: return [ship for ship in self.ships if ship.shot(point)][0];
-		except: None;
+		self.enemy_shots[point[0]][point[1]] = True;
+		shot_ship = [ship for ship in self.ships if ship.shot(point)];
+		if(shot_ship): return shot_ship[0];
+		return None;
 
 
 
 class AI(Player):
-	def __init__(self, game, name="Enemy"):
-		Player.__init__(self, game, name, is_AI=True);
+	def __init__(self, game, player_id, name="Enemy"):
+		Player.__init__(self, game, player_id, name, is_AI=True);
 
 		self.previous_shots = [];  # previous shots
 		self.targeting = False;  # whether the enemy has found a ship and is tracking it
@@ -114,8 +117,8 @@ class AI(Player):
 
 
 class User(Player):
-	def __init__(self, game, name="User"):
-		Player.__init__(self, game, name);
+	def __init__(self, game, player_id, name="User"):
+		Player.__init__(self, game, player_id, name);
 
 
 	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #

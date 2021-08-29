@@ -24,7 +24,8 @@ from GUI.Window import Window;
 class Game:
 	def __init__(self, starting_player_number=0):
 		# Players in the game
-		self.players = [AI(self, "AI"), User(self, "MPZinke")];  # this is where it is defined whether single or multiplayer
+		# this is where it is defined whether single or multiplayer
+		self.players = [[AI, User][x](self, x, ["AI", "MPZinke"][x]) for x in range(2)];
 		self.current_player_number = starting_player_number;
 
 		self.is_ship_placement = True;  # whether the current goal of the game is to place ships (Ship Placement Simulator)
@@ -56,19 +57,14 @@ class Game:
 
 	def attack(self, point, attacker):
 		opponent = self.opposing_player_for_turn();
+		attacker.shoot(point);
 		shot_ship = opponent.shot(point);
 		if(shot_ship): 
 			print("{} HIT {}'s {} at [{},{}]".format(attacker.name, opponent.name, shot_ship.name, *point));  #TESTING
-			self.window.update_hit(self.current_player_number, point, shot_ship.id, shot_ship.start_offset(point));
+			self.window.update_hit(point, attacker, shot_ship.id, shot_ship.start_offset(point));
 		else:
 			print("{} MISSED at point [{},{}]".format(attacker.name, *point));
 			self.window.update_miss(self.current_player_number, point);
-		# update attacker
-		# update opponent
-
-		# update attacker GUI
-		# update opponent GUI
-
 
 
 	def increment_turn(self):
