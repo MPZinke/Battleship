@@ -71,6 +71,12 @@ class Ocean(Frame):
 		index(self.buttons, point)["text"] = symbol;
 
 
+	# Gets all buttons specified as color.
+	def colored_buttons(self, color):
+		buttons = self.buttons;
+		return [[x,y] for x in range(FIELD_SIZE) for y in range(FIELD_SIZE) if index(buttons, [x,y])["bg"] == color];
+
+
 	def disable_button(self, point):
 		index(self.buttons, point)["state"] = DISABLE;
 
@@ -83,28 +89,42 @@ class Ocean(Frame):
 		[self.buttons[x][y].config(state="normal") for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 
 
-	# Gets all buttons specified as color.
-	def colored_buttons(self, color):
-		buttons = self.buttons;
-		return [[x,y] for x in range(FIELD_SIZE) for y in range(FIELD_SIZE) if index(buttons, [x,y])["bg"] == color];
-
-
 	def redraw_field(self, ships):
 		[self.change_button_color([x,y], OCEAN_COLOR) for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 		[self.change_button_text(point, OCEAN_CHAR) for ship in ships for point in ship.location.points];
 
 		[self.change_button_text(point, SHIP_CHAR) for ship in ships for point in ship.location.points];
+		self.redraw_ships();
+
+
+	def redraw_ships(self):
 		for ship in self.player.ships:
 			for point in ship.location.points:
-				char, color = [[SHIP_CHAR, SHIP_COLOR], [HIT_CHAR, HIT_COLOR]][ship.is_hit(point)];
-				self.change_button_text(point, char);
-				self.change_button_color(point, color);
+				self.change_button_color(point, Ocean.ship_point_color(point, ship));
+				self.change_button_text(point, HIT_CHAR if(ship.is_hit(point)) else SHIP_CHAR);
 
 
 	def update_buttom_command(self, callback, *args):
 		for x in range(FIELD_SIZE):
 			for y in range(FIELD_SIZE):
 				self.buttons[x][y].config(command=lambda_helper(callback, [x,y], *args));
+
+
+	# ———————————————————————————————————————————————————— STATIC ———————————————————————————————————————————————————— #
+
+	@staticmethod
+	def ship_point_color(point, ship):
+		return {0: SHIP_COLOR, 1: HIT_COLOR}[ship.is_hit(point)];
+
+
+	@staticmethod
+	def highlight_color(location, ships):
+		return {0: "red", 1: "green"}[Location.valid_location(ships, points=location.points)];
+
+
+	@staticmethod
+	def unhighlight_color(point, ships):
+		return {0: OCEAN_COLOR, 1: SHIP_COLOR}[Location.any_ship_overlap(ships, points=[point])];
 
 
 
@@ -128,6 +148,10 @@ class AIOcean(Frame):
 
 	def change_button_color(self, point, color):
 		index(self.squares, point)["bg"] = color;
+
+
+	def redraw_ships(self):
+		return;
 
 
 
@@ -171,7 +195,7 @@ class PlayerOcean(Ocean):
 
 
 	def switch_orientation(self):
-		highlighted = self.colored_buttons("green") + self.colored_buttons("yellow") + self.colored_buttons("red");
+		highlighted = self.colored_buttons("green") + self.colored_buttons("red");
 		if(not highlighted): self.orientation ^= 1;
 		else:
 			self.unhighlight_ship(highlighted[0])(None);
@@ -182,20 +206,18 @@ class PlayerOcean(Ocean):
 	def highlight_ship(self, x_y):
 		def function(e):
 			if self.player.ships_are_placed: return;  # skip unnecessary work
-			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], x_y).points;
-			color = {0: "red", 1: "green"}[Location.valid_location(self.player.ships, points=points)];
-			[self.change_button_color(point, color) for point in Location.usable_points(points)];
+			location = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], x_y);
+			color = Ocean.highlight_color(location, self.player.ships);
+			[self.change_button_color(point, color) for point in location.usable_points()];
 
-		return function
+		return function;
 
 
 	def unhighlight_ship(self, x_y):
 		def function(e):
 			if self.player.ships_are_placed: return;  # skip unnecessary work
 
-			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], x_y).points;
-			for point in Location.usable_points(points):
-				color = {0: OCEAN_COLOR, 1: SHIP_COLOR}[Location.any_ship_overlap(self.player.ships, points=[point])];
-				self.change_button_color(point, color);
+			points = Location(self.orientation, Ship.SHIPS[len(self.player.ships)]["size"], x_y).usable_points();
+			[self.change_button_color(point, Ocean.unhighlight_color(point, self.player.ships)) for point in points];
 
-		return function
+		return function;

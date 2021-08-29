@@ -28,6 +28,12 @@ class Location:
 		self.start = start;  # starting point
 
 
+	def usable_points(self):
+		return Location.usable(self.points);
+
+
+	# ———————————————————————————————————————————————————— STATIC ———————————————————————————————————————————————————— #
+
 	# Checks if there is any ship overlap with the points in range.
 	@staticmethod
 	def any_ship_overlap(ships, **kwargs):
@@ -67,7 +73,7 @@ class Location:
 
 
 	@staticmethod
-	def usable_points(points):
+	def usable(points):
 		return [point for point in points if point[0] < FIELD_SIZE and point[1] < FIELD_SIZE];
 
 
@@ -138,6 +144,8 @@ class Ship:
 		if(point not in self.location.points): raise NotShipPoint(point);
 		return point[self.location.orientation] - self.location.points[0][self.location.orientation];
 
+
+	# ———————————————————————————————————————————————————— STATIC ———————————————————————————————————————————————————— #
 
 	@staticmethod
 	def place_single_ship_randomly(ship, ships):

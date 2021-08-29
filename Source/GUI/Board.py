@@ -107,6 +107,7 @@ class UserBoard(Board):
 
 	def enable_player_to_attack_enemy(self):
 		self.player_field.ocean.disable_buttons();  # don't allow player to place ships anymore
+		self.player_field.ocean.redraw_ships();
 		self.enemy_field.enable_attacking(self.player);
 
 
