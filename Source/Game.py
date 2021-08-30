@@ -22,6 +22,10 @@ from GUI.Window import Window;
 
 
 class Game:
+	MISS = -1;
+	UNKNOWN = 0;
+	HIT = 1;
+
 	def __init__(self, starting_player_number=0):
 		# Players in the game
 		# this is where it is defined whether single or multiplayer
@@ -39,35 +43,27 @@ class Game:
 
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
-	# Calls the attack method for a player.
-	# PARAMS: The player who is attacking, the location they are attacking.
-	def attack(self, player, location):
-		attacker = player;
-		defender = self.opposing_player_for_player(player);
+	def attack(self, point, attacker):
+		opponent = self.opposing_player_for_turn();
+		shot_ship = opponent.shot(point);
+		shot_type = Game.HIT if shot_ship else Game.MISS;
+		attacker.shoot_at_enemy(point, shot_type);
+		if(shot_ship): 
+			print("{} HIT {}'s {} at [{},{}]".format(attacker.name, opponent.name, shot_ship.name, *point));  #TESTING
+			self.window.update_hit(point, attacker, shot_ship.id, shot_ship.start_offset(point));
+			if(shot_ship.is_sunk()): self.window.mark_players_ship_as_sunk(attacker, shot_ship.id);
+		else:
 
-		attacker.shoot(location);
-		defender.shot(location);
+			print("{} MISSED at point [{},{}]".format(attacker.name, *point));
+			self.window.update_miss(self.current_player_number, point);
+
+		return bool(shot_ship);
 
 
 	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #
 
 	def mainloop(self):
 		self.window.mainloop();
-
-
-	def attack(self, point, attacker):
-		opponent = self.opposing_player_for_turn();
-		attacker.shoot(point);
-		shot_ship = opponent.shot(point);
-		if(shot_ship): 
-			print("{} HIT {}'s {} at [{},{}]".format(attacker.name, opponent.name, shot_ship.name, *point));  #TESTING
-			self.window.update_hit(point, attacker, shot_ship.id, shot_ship.start_offset(point));
-			if(shot_ship.is_sunk()): self.window.mark_players_ship_as_sunk(attacker, shot_ship.id);
-		else:
-			print("{} MISSED at point [{},{}]".format(attacker.name, *point));
-			self.window.update_miss(self.current_player_number, point);
-
-		return bool(shot_ship);
 
 
 	def increment_turn(self):

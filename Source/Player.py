@@ -31,7 +31,8 @@ class Player:
 		self.ships_are_placed = False;  # whether the ships for the player have been placed
 		self.ships = [];
 		# ATTACKS
-		self.player_shots = [];  # list of points where player has attacked the enemy
+		self.shot_history = [];  # list of points where player has attacked the enemy
+		self.player_shots = [[Game.UNKNOWN for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
 		self.enemy_shots = [[False for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];  # places opponent has shot
 
 
@@ -65,9 +66,8 @@ class Player:
 
 	# Function called when attacking another player.
 	# Player is SHOOTing opponent.
-	def shoot(self, point):
-		if(point in self.player_shots): return False;
-		self.player_shots.append(point);
+	def shoot_at_enemy(self, point, shot_type):
+		self.player_shots[point[0]][point[1]] = shot_type;
 
 
 	# Function called when a player is being attacked by the other player.
@@ -80,12 +80,22 @@ class Player:
 
 
 
+	# ———————————————————————————————————————————————————  GETTERS ——————————————————————————————————————————————————— #
+
+	def remaining_ships(self):
+		return [ship for ship in self.ships if not ship.is_sunk()];
+
+
+
 class AI(Player):
 	def __init__(self, game, player_id, name="Enemy"):
 		Player.__init__(self, game, player_id, name, is_AI=True);
 
 		self.previous_shots = [];  # previous shots
 		self.targeting = False;  # whether the enemy has found a ship and is tracking it
+		self.next_shot_queue = [];  # determine where to shoot next
+		self.orientation = 0;  # orientation to travel in either a + or - direction: 0—vertical, 1—horizontal
+		self._direction = False;  # direction along orientation to pursue: 0—negative direction, 1—positive direction
 
 
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
@@ -113,6 +123,12 @@ class AI(Player):
 			point = [randint(0,9), randint(0,9)];
 			self.game.attack(point, self);
 			# print("{} attacked at [{},{}]".format(self.name, point[0], point[1]));
+
+
+	# ——————————————————————————————————————————————————  TARGETING —————————————————————————————————————————————————— #
+
+	def direction(self):
+		return [-1, 1][self._direction];
 
 
 

@@ -27,6 +27,15 @@ def is_mac():
 	return system() == "Darwin";
 
 
+def lambda_helper(function, *args):
+	if(len(args) == 0): return lambda: function();
+	if(len(args) == 1): return lambda w=args[0]: function(w);
+	if(len(args) == 2): return lambda w=args[0], x=args[1]: function(w,x);
+	if(len(args) == 2): return lambda w=args[0], x=args[1], y=args[2]: function(w,x,y);
+	if(len(args) == 2): return lambda w=args[0], x=args[1], y=args[2], z=args[3]: function(w,x,y,z);
+
+
+
 # GAME
 FIELD_SIZE = 10
 
