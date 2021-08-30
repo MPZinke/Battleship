@@ -14,6 +14,10 @@ __author__ = "MPZinke"
 ########################################################################################################################
 
 
+def execute_multiple(*args):
+	for arg in args: arg();
+
+
 # Gets the value at the specified index for a multidimensional list list.
 def index(multidimensional_list, point):
 	value = multidimensional_list;

@@ -14,6 +14,7 @@ __author__ = "MPZinke"
 ########################################################################################################################
 
 
+from Global import *;
 from Game import Game;
 from Ship import Location;
 
@@ -22,7 +23,7 @@ class Targeting:
 	NEGATIVE_DIRECTION = 0;
 	POSITIVE_DIRECTION = 1;
 
-	def __init__(self, ai, start, orientation, direction):
+	def __init__(self, ai, start):
 		self._ai = ai;  # the AI player for whom the Targeting object exists
 
 		self.is_active = True;  # whether the targeting is still active
@@ -40,6 +41,14 @@ class Targeting:
 
 		self._destroyed_ships = {};  # {ship.id: ship.points [, ...]}
 
+		self._setup_targeting();
+
+
+	def _setup_targeting(self):
+		surrounding_points = self.calculate_hits_surrounding_points(self._start.copy);
+		self.queue_points_and_switching_functions(surrounding_points);
+
+
 
 	def direction(self):
 		return [-1, 1][self._direction];
@@ -49,7 +58,10 @@ class Targeting:
 
 	def next_move(self):
 		next_point = self._incremented_point();
-		if(self._next_move_is_invalid(next_point)): self._next_switch();
+		if(self._next_move_is_invalid(next_point)):
+			self._next_switch();
+			next_point = self._incremented_point();
+		return next_point;
 
 
 	# Next point relative to 
@@ -64,7 +76,7 @@ class Targeting:
 	def _next_move_is_in_bounds(self, next_point=None):
 		if(not next_point): next_point = self._incremented_point();
 
-		return all(0 <= next_point[x] < FIELD_SIZE for x range(len(next_point)));
+		return all(0 <= next_point[x] < FIELD_SIZE for x in range(len(next_point)));
 
 
 	# Checks whether the next move is in bounds of the board & has not been attacked already.
@@ -94,17 +106,17 @@ class Targeting:
 		# other goes are necessary
 		else:
 			# If start point's ship has not been eliminated, keep searching for ship, starting at next pattern.
-			if(self._start not in destroyed_ships_points): self._next_switch();
+			if(self._start not in destroyed_ships_points): self._setup_switch();
 			# Start point's ship has been eliminated, meaning there are other ships discovered. Queue them up.
-
-			#TODO: partion into other ships
-			pass
+			else:
+				#TODO: partion into other ships
+				pass
 
 
 	# ——————————————————————————————————————————————————  SWITCHING —————————————————————————————————————————————————— #
 
 	# Calls the next switching function in the orientation/direction switch queue. Resets necessary values.
-	def _next_switch(self):
+	def _setup_switch(self):
 		if(not self._next_switch): raise Exception("Switching is no longer available");
 		self._next_switch.pop(0)();
 		self._current_point = self._start.copy();
@@ -146,4 +158,17 @@ class Targeting:
 
 
 	def queue_points_and_switching_functions(self, points):
-		pass;
+		orientations = [self._switch_vertical, self._switch_horizontal];
+		directions = [self._switch_minus, self._switch_plus];
+
+		switch_order = []
+
+		# get longest order
+		lengths = [len(direction) for orientation in points for direction in orientation];
+		for _ in range(len(lengths)):
+			longest = max(lengths)
+			index = lengths.index(longest);
+			if(longest == 0): break;  # don't queue up useless directions
+
+			lengths[index] = 0;  # prevent calling direction again
+			self._next_switch.append(lambda_helper(execute_multiple, orientations[index & 2], directions[index & 1]));

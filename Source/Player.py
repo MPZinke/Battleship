@@ -17,6 +17,7 @@ __author__ = "MPZinke"
 from random import randint;
 
 from Global import *;
+from Targeting import Targeting;
 from Ship import Location, Ship;
 
 
@@ -66,8 +67,8 @@ class Player:
 
 	# Function called when attacking another player.
 	# Player is SHOOTing opponent.
-	def shoot_at_enemy(self, point, shot_type):
-		self.player_shots[point[0]][point[1]] = shot_type;
+	def shoot_at_enemy(self, point, shot_ship=None):
+		self.player_shots[point[0]][point[1]] = Game.HIT if shot_ship else Game.MISS;
 
 
 	# Function called when a player is being attacked by the other player.
@@ -105,6 +106,12 @@ class AI(Player):
 		# attack logic
 
 
+	def shoot_at_enemy(self, point, shot_ship=None):
+		self.player_shots[point[0]][point[1]] = Game.HIT if shot_ship else Game.MISS;
+		if(not self.targeting): self.targeting = Targeting(self, point);
+
+
+
 	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
 
 	def place_ships(self):
@@ -120,7 +127,8 @@ class AI(Player):
 			print("\tAI: Placed Ship at {}".format(str(self.ships[-1].location.points[0])));  #TESTING
 		# Try to attack and prepare to be attacked
 		else:
-			point = [randint(0,9), randint(0,9)];
+			if(not self.targeting): point = [randint(0,9), randint(0,9)];
+			else: point = self.targeting.next_move();
 			self.game.attack(point, self);
 			# print("{} attacked at [{},{}]".format(self.name, point[0], point[1]));
 
