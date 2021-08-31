@@ -39,6 +39,11 @@ def lambda_helper(function, *args):
 	if(len(args) == 2): return lambda w=args[0], x=args[1], y=args[2], z=args[3]: function(w,x,y,z);
 
 
+def print_trace():
+	import traceback;
+	for line in traceback.format_stack():
+		print(line.strip())
+
 
 # GAME
 FIELD_SIZE = 10

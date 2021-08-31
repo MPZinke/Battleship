@@ -14,21 +14,34 @@ class Game:
 	HIT = 1;
 
 	def __init__(self):
-		self._ai = MinAI();
-		self.enemy = MinAI(True);
+		self._ai = MinAI(self);
+		self.enemy = MinAI(self);
 
 
 	def mainloop(self):
+		self.print_boards();
+		self.attack();
+		while(True):
+			self.print_boards()
+			input("Press enter to continue");
+			self.attack();
+
+
+	def attack(self):
+		if(not self._ai.targeting): point = [6,6];
+		else:
+			point = self._ai.targeting.next_move();
+			print("Point: {}".format(point));
+
+		shot_ship = self.enemy.shot(point);
+		self._ai.shoot_at_enemy(point, shot_ship);
+
+
+	def print_boards(self):
 		print("Enemy:")
 		self.enemy.print_board(True);
 		print("AI:");
 		self._ai.print_board();
-		self.shoot()
-		while(True):
-			input("Press enter to continue");
-
-
-
 
 
 
@@ -38,7 +51,7 @@ class MinAI:
 
 		self.targeting = None;
 		self.player_shots = [[Game.UNKNOWN for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
-		self.player_shots[6][6] = Game.HIT;
+		# self.player_shots[6][6] = Game.HIT;
 
 		ship_data = [[True, 5, [6,4]], [False, 4, [6,2]], [False, 3, [6,3]], [True, 3, [9,6]], [True, 2, [6, 0]]];
 		ships = Ship.SHIPS;
@@ -56,10 +69,11 @@ class MinAI:
 		print();
 
 
-	def shoot(self):
-		if(self.targeting): return self.targeting.next_move();
-		return [6,6];
-
+	def shoot_at_enemy(self, point, ship):
+		self.player_shots[point[0]][point[1]] = Game.HIT if ship else Game.MISS;
+		if(ship and not self.targeting): self.targeting = Targeting(self.game, self, point);
+		if(ship and ship.is_sunk()): self.targeting.move_sunk_a_ship(ship, ship.location.points);
+		if(self.targeting): self.targeting.record_previous_move();
 
 
 	def shot(self, point):

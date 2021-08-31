@@ -47,17 +47,6 @@ class Player:
 		raise Exception("No function for Player::place_ships defined in a child class");
 
 
-	def print(self):
-		for x in range(FIELD_SIZE):
-			row = "";
-			for y in range(FIELD_SIZE):
-				value = 1;
-				bools = [self.is_hit([x,y]), self.enemy_shots[x][y], self.is_hit([x,y]) and self.enemy_shots[x][y]];
-				for x in range(len(bools)): value = bools[x] * (1 << x) + (not bools[x] * value);
-				row += {1: OCEAN_CHAR_CLI, 2: SHIP_CHAR, 4: MISS_CHAR, 8: HIT_CHAR}[value];
-			print(row);
-
-
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
 	# Return if a shot hits a ship.
@@ -76,9 +65,7 @@ class Player:
 	def shot(self, point):
 		self.enemy_shots[point[0]][point[1]] = True;
 		shot_ship = [ship for ship in self.ships if ship.shot(point)];
-		if(shot_ship): return shot_ship[0];
-		return None;
-
+		return shot_ship[0] if(shot_ship) else None;
 
 
 	# ———————————————————————————————————————————————————  GETTERS ——————————————————————————————————————————————————— #
@@ -106,10 +93,11 @@ class AI(Player):
 		# attack logic
 
 
-	def shoot_at_enemy(self, point, shot_ship=None):
-		self.player_shots[point[0]][point[1]] = Game.HIT if shot_ship else Game.MISS;
-		if(not self.targeting): self.targeting = Targeting(self, point);
-
+	def shoot_at_enemy(self, point, ship=None):
+		self.player_shots[point[0]][point[1]] = Game.HIT if ship else Game.MISS;
+		if(ship and not self.targeting): self.targeting = Targeting(self.game, self, point);
+		if(ship and ship.is_sunk()): self.targeting.move_sunk_a_ship(ship, ship.location.points);
+		if(self.targeting): self.targeting.record_previous_move();
 
 
 	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
