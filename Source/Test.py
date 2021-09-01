@@ -20,21 +20,17 @@ class Game:
 
 	def mainloop(self):
 		self.print_boards();
-		self.attack();
+		self._ai.attack();
 		while(True):
 			self.print_boards()
 			input("Press enter to continue");
-			self.attack();
+			self._ai.attack();
 
 
-	def attack(self):
-		if(not self._ai.targeting): point = [6,6];
-		else:
-			point = self._ai.targeting.next_move();
-			print("Point: {}".format(point));
-
+	def attack(self, point):
 		shot_ship = self.enemy.shot(point);
-		self._ai.shoot_at_enemy(point, shot_ship);
+		# update GUI stuff
+		return shot_ship if(shot_ship) else None;
 
 
 	def print_boards(self):
@@ -51,7 +47,7 @@ class MinAI:
 
 		self.targeting = None;
 		self.player_shots = [[Game.UNKNOWN for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
-		# self.player_shots[6][6] = Game.HIT;
+		self.sunk_enemy_ship_ids = [];  #TRANSFER
 
 		ship_data = [[True, 5, [6,4]], [False, 4, [6,2]], [False, 3, [6,3]], [True, 3, [9,6]], [True, 2, [6, 0]]];
 		ships = Ship.SHIPS;
@@ -69,11 +65,27 @@ class MinAI:
 		print();
 
 
+	#TRANSFER
+	def attack(self):
+		attack_point = self.targeting.next_move() if self.targeting else [6,6];
+		shot_ship = self.game.attack(attack_point);
+		self.record_previous_move(attack_point, shot_ship);
+
+
+	#TRANSFER
+	def record_previous_move(self, point, shot_ship):
+		self.player_shots[point[0]][point[1]] = Game.HIT if shot_ship else Game.MISS;
+		if(self.targeting): self.targeting.record_previous_move(shot_ship);
+		elif(shot_ship): self.targeting = Targeting(self.game, self, point);
+
+		if(shot_ship and shot_ship.is_sunk()): self.sunk_enemy_ship_ids.append(shot_ship.id);
+
+
 	def shoot_at_enemy(self, point, ship):
 		self.player_shots[point[0]][point[1]] = Game.HIT if ship else Game.MISS;
 		if(ship and not self.targeting): self.targeting = Targeting(self.game, self, point);
-		if(ship and ship.is_sunk()): self.targeting.move_sunk_a_ship(ship, ship.location.points);
 		if(self.targeting): self.targeting.record_previous_move();
+		if(ship and ship.is_sunk()): self.targeting.move_sunk_a_ship(ship, ship.location.points);
 
 
 	def shot(self, point):

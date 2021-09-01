@@ -57,7 +57,7 @@ class Game:
 			print("{} MISSED at point [{},{}]".format(attacker.name, *point));
 			self.window.update_miss(self.current_player_number, point);
 
-		return bool(shot_ship);
+		return shot_ship.location.points if shot_ship else [];
 
 
 	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #
