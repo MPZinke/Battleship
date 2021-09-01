@@ -1,5 +1,6 @@
 
 
+from random import randint;
 from time import sleep;
 
 
@@ -23,8 +24,12 @@ class Game:
 		self._ai.attack();
 		while(True):
 			self.print_boards()
-			input("Press enter to continue");
+			input("Press enter to co;ntinue");
 			self._ai.attack();
+			if(all(ship.is_sunk() for ship in self.enemy.ships)):
+				self.print_boards();
+				print("YOU WON!!!");
+				return
 
 
 	def attack(self, point):
@@ -51,7 +56,8 @@ class MinAI:
 
 		ship_data = [[True, 5, [6,4]], [False, 4, [6,2]], [False, 3, [6,3]], [True, 3, [9,6]], [True, 2, [6, 0]]];
 		ships = Ship.SHIPS;
-		self.ships = [Ship(x, ships[x]["name"], ships[x]["size"], Location(*(ship_data[x]))) for x in range(len(ships))];
+		# self.ships = [Ship(x, ships[x]["name"], ships[x]["size"], Location(*(ship_data[x]))) for x in range(len(ships))];
+		self.ships = Ship.place_all_ships_randomly();
 
 
 	def print_board(self, show_ships=False):
@@ -67,7 +73,15 @@ class MinAI:
 
 	#TRANSFER
 	def attack(self):
-		attack_point = self.targeting.next_move() if self.targeting else [6,6];
+		if(self.targeting): attack_point = self.targeting.next_move();
+		# elif(not self.sunk_enemy_ship_ids): attack_point = [6,6];  #IGNORE
+		else:
+			for x in range(0xFFFF):
+				if(x == 0xFFFE): raise Exception("MinAI::attack:attack_point: OVERFLOW");
+				attack_point = [randint(0, FIELD_SIZE-1), randint(0, FIELD_SIZE-1)];
+				if(index(self.player_shots, attack_point) == self.game.UNKNOWN): break;
+
+		print("MinAI::attack:attack_point: ", str(attack_point));
 		shot_ship = self.game.attack(attack_point);
 		self.record_previous_move(attack_point, shot_ship);
 
@@ -79,6 +93,7 @@ class MinAI:
 		elif(shot_ship): self.targeting = Targeting(self.game, self, point);
 
 		if(shot_ship and shot_ship.is_sunk()): self.sunk_enemy_ship_ids.append(shot_ship.id);
+
 
 
 	def shoot_at_enemy(self, point, ship):
