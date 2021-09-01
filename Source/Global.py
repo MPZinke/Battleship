@@ -26,6 +26,14 @@ def index(multidimensional_list, point):
 	return value;
 
 
+def is_defined(variable):
+	return variable in vars();
+
+
+def is_defined_and_not_null(variable):
+	return is_defined(variable) and vars()[variable];
+
+
 def is_mac():
 	from platform import system;
 	return system() == "Darwin";

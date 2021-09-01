@@ -60,6 +60,12 @@ class Game:
 		return shot_ship.location.points if shot_ship else [];
 
 
+	def sunk_ship_for_players_opponent_at_point(self, player, point):
+		opponent = self.opposing_player_for_player(player);
+		ship = [ship for ship in opponent.ships if ship.is_sunk() and ship.hits_ship(point)];
+		return ship[0] if ship else None;
+
+
 	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #
 
 	def mainloop(self):

@@ -23,8 +23,8 @@ class Game:
 		self.print_boards();
 		self._ai.attack();
 		while(True):
-			self.print_boards()
-			input("Press enter to co;ntinue");
+			self.print_boards();
+			input("Press enter to continue");
 			self._ai.attack();
 			if(all(ship.is_sunk() for ship in self.enemy.ships)):
 				self.print_boards();
@@ -43,6 +43,14 @@ class Game:
 		self.enemy.print_board(True);
 		print("AI:");
 		self._ai.print_board();
+
+
+	def sunk_ship_for_players_opponent_at_point(self, player, point):
+		opponent = self.enemy;
+		ship = [ship for ship in opponent.ships if ship.is_sunk() and ship.hits_ship(point)];
+		return ship[0] if ship else None;
+
+
 
 
 
@@ -75,13 +83,19 @@ class MinAI:
 	def attack(self):
 		if(self.targeting): attack_point = self.targeting.next_move();
 		# elif(not self.sunk_enemy_ship_ids): attack_point = [6,6];  #IGNORE
-		else:
+		# else:
+		if(not self.targeting or not attack_point):
 			for x in range(0xFFFF):
 				if(x == 0xFFFE): raise Exception("MinAI::attack:attack_point: OVERFLOW");
 				attack_point = [randint(0, FIELD_SIZE-1), randint(0, FIELD_SIZE-1)];
 				if(index(self.player_shots, attack_point) == self.game.UNKNOWN): break;
 
-		print("MinAI::attack:attack_point: ", str(attack_point));
+		# if(not attack_point):
+		# 	for x in range(0xFFFF):
+		# 		if(x == 0xFFFE): raise Exception("MinAI::attack:attack_point: OVERFLOW");
+		# 		attack_point = [randint(0, FIELD_SIZE-1), randint(0, FIELD_SIZE-1)];
+		# 		if(index(self.player_shots, attack_point) == self.game.UNKNOWN): break;
+
 		shot_ship = self.game.attack(attack_point);
 		self.record_previous_move(attack_point, shot_ship);
 
@@ -89,11 +103,9 @@ class MinAI:
 	#TRANSFER
 	def record_previous_move(self, point, shot_ship):
 		self.player_shots[point[0]][point[1]] = Game.HIT if shot_ship else Game.MISS;
-		if(self.targeting): self.targeting.record_previous_move(shot_ship);
-		elif(shot_ship): self.targeting = Targeting(self.game, self, point);
-
-		if(shot_ship and shot_ship.is_sunk()): self.sunk_enemy_ship_ids.append(shot_ship.id);
-
+		if(shot_ship):
+			if(not self.targeting): self.targeting = Targeting(self.game, self, point);
+			if(shot_ship.is_sunk()): self.sunk_enemy_ship_ids.append(shot_ship.id);
 
 
 	def shoot_at_enemy(self, point, ship):
