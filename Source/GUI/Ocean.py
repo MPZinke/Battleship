@@ -57,8 +57,8 @@ class Ocean(Frame):
 		button_points = [[x, y] for x in range(FIELD_SIZE) for y in range(FIELD_SIZE)];
 		for point in button_points:  # button columns should be in order
 			function = lambda_helper(callback, point);
-			kwargs = {"master": self, "bg": OCEAN_COLOR, "text": OCEAN_CHAR, "fg": "white", "width": 25, "command": function};
-			kwargs.update({"disabledbackground": OCEAN_COLOR, "disabledforeground": "white"})
+			kwargs = {"master": self, "bg": OCEAN_COLOR, "text": OCEAN_CHAR, "fg": "white", "command": function};
+			if(is_mac()): kwargs.update({"width": 25, "disabledbackground": OCEAN_COLOR, "disabledforeground": "white"})
 			self.buttons[point[0]].append(Button(**kwargs));
 			index(self.buttons, point).grid(row=point[0], column=point[1]);
 
