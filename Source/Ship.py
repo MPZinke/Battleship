@@ -21,8 +21,11 @@ from Exceptions import *;
 
 
 class Location:
+	HORIZONTAL = 1;
+	VERTICAL = 0;
+
 	def __init__(self, orientation, span, start):
-		self.orientation = orientation;  # bool 0-vertical, 1-horizontal
+		self.orientation = orientation;  # index of [row, column] value that changes: bool 0-vertical, 1-horizontal
 		self.points = [[start[0], start[1]+x] if orientation else [start[0]+x, start[1]] for x in range(span)];
 		self.span = span;  # the length of the points
 		self.start = start;  # starting point

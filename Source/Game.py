@@ -22,6 +22,10 @@ from GUI.Window import Window;
 
 
 class Game:
+	MISS = -1;
+	UNKNOWN = 0;
+	HIT = 1;
+
 	def __init__(self, starting_player_number=0):
 		# Players in the game
 		# this is where it is defined whether single or multiplayer
@@ -39,25 +43,8 @@ class Game:
 
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
-	# Calls the attack method for a player.
-	# PARAMS: The player who is attacking, the location they are attacking.
-	def attack(self, player, location):
-		attacker = player;
-		defender = self.opposing_player_for_player(player);
-
-		attacker.shoot(location);
-		defender.shot(location);
-
-
-	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #
-
-	def mainloop(self):
-		self.window.mainloop();
-
-
 	def attack(self, point, attacker):
 		opponent = self.opposing_player_for_turn();
-		attacker.shoot(point);
 		shot_ship = opponent.shot(point);
 		if(shot_ship): 
 			print("{} HIT {}'s {} at [{},{}]".format(attacker.name, opponent.name, shot_ship.name, *point));  #TESTING
@@ -67,7 +54,19 @@ class Game:
 			print("{} MISSED at point [{},{}]".format(attacker.name, *point));
 			self.window.update_miss(self.current_player_number, point);
 
-		return bool(shot_ship);
+		return shot_ship;
+
+
+	def sunk_ship_for_players_opponent_at_point(self, player, point):
+		opponent = self.opposing_player_for_player(player);
+		ship = [ship for ship in opponent.ships if ship.is_sunk() and ship.hits_ship(point)];
+		return ship[0] if ship else None;
+
+
+	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #
+
+	def mainloop(self):
+		self.window.mainloop();
 
 
 	def increment_turn(self):

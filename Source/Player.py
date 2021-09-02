@@ -17,6 +17,7 @@ __author__ = "MPZinke"
 from random import randint;
 
 from Global import *;
+from Targeting import Targeting;
 from Ship import Location, Ship;
 
 
@@ -31,7 +32,8 @@ class Player:
 		self.ships_are_placed = False;  # whether the ships for the player have been placed
 		self.ships = [];
 		# ATTACKS
-		self.player_shots = [];  # list of points where player has attacked the enemy
+		self.sunk_enemy_ship_ids = [];  # IDs of enemy's ships that have been sunk
+		self.player_shots = [[self.game.UNKNOWN for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];
 		self.enemy_shots = [[False for y in range(FIELD_SIZE)] for x in range(FIELD_SIZE)];  # places opponent has shot
 
 
@@ -45,17 +47,6 @@ class Player:
 		raise Exception("No function for Player::place_ships defined in a child class");
 
 
-	def print(self):
-		for x in range(FIELD_SIZE):
-			row = "";
-			for y in range(FIELD_SIZE):
-				value = 1;
-				bools = [self.is_hit([x,y]), self.enemy_shots[x][y], self.is_hit([x,y]) and self.enemy_shots[x][y]];
-				for x in range(len(bools)): value = bools[x] * (1 << x) + (not bools[x] * value);
-				row += {1: OCEAN_CHAR_CLI, 2: SHIP_CHAR, 4: MISS_CHAR, 8: HIT_CHAR}[value];
-			print(row);
-
-
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
 	# Return if a shot hits a ship.
@@ -65,9 +56,8 @@ class Player:
 
 	# Function called when attacking another player.
 	# Player is SHOOTing opponent.
-	def shoot(self, point):
-		if(point in self.player_shots): return False;
-		self.player_shots.append(point);
+	def shoot_at_enemy(self, point, shot_ship=None):
+		self.player_shots[point[0]][point[1]] = self.game.HIT if shot_ship else self.game.MISS;
 
 
 	# Function called when a player is being attacked by the other player.
@@ -75,8 +65,13 @@ class Player:
 	def shot(self, point):
 		self.enemy_shots[point[0]][point[1]] = True;
 		shot_ship = [ship for ship in self.ships if ship.shot(point)];
-		if(shot_ship): return shot_ship[0];
-		return None;
+		return shot_ship[0] if(shot_ship) else None;
+
+
+	# ———————————————————————————————————————————————————  GETTERS ——————————————————————————————————————————————————— #
+
+	def remaining_ships(self):
+		return [ship for ship in self.ships if not ship.is_sunk()];
 
 
 
@@ -86,13 +81,32 @@ class AI(Player):
 
 		self.previous_shots = [];  # previous shots
 		self.targeting = False;  # whether the enemy has found a ship and is tracking it
+		self.next_shot_queue = [];  # determine where to shoot next
+		self.orientation = 0;  # orientation to travel in either a + or - direction: 0—vertical, 1—horizontal
+		self._direction = False;  # direction along orientation to pursue: 0—negative direction, 1—positive direction
 
 
 	# ——————————————————————————————————————————————————  ATTACKING —————————————————————————————————————————————————— #
 
 	def attack(self):
-		self.game.enemy_board.print()  #TESTING
-		# attack logic
+		if(self.targeting): attack_point = self.targeting.next_move();
+		if(not self.targeting or not attack_point):
+			#TODO: implement probablility points
+			#TESTING
+			for x in range(0xFFFF):
+				if(x == 0xFFFE): raise Exception("MinAI::attack:attack_point: OVERFLOW");
+				attack_point = [randint(0, FIELD_SIZE-1), randint(0, FIELD_SIZE-1)];
+				if(index(self.player_shots, attack_point) == self.game.UNKNOWN): break;
+
+		shot_ship = self.game.attack(attack_point, self);
+		self.record_previous_move(attack_point, shot_ship);
+
+
+	def record_previous_move(self, point, shot_ship):
+		self.player_shots[point[0]][point[1]] = self.game.HIT if shot_ship else self.game.MISS;
+		if(shot_ship):
+			if(not self.targeting): self.targeting = Targeting(self.game, self, point);
+			if(shot_ship.is_sunk()): self.sunk_enemy_ship_ids.append(shot_ship.id);
 
 
 	# ———————————————————————————————————————————————— SHIP PLACEMENT ———————————————————————————————————————————————— #
@@ -105,14 +119,25 @@ class AI(Player):
 	# ————————————————————————————————————————————————————— GAME ————————————————————————————————————————————————————— #
 
 	def turn(self):
-		if(not self.ships_are_placed):
+		# Try to attack and prepare to be attacked
+		if(self.ships_are_placed): self.attack();
+		else:
 			self.place_ships();
 			print("\tAI: Placed Ship at {}".format(str(self.ships[-1].location.points[0])));  #TESTING
-		# Try to attack and prepare to be attacked
-		else:
-			point = [randint(0,9), randint(0,9)];
-			self.game.attack(point, self);
+
+###
+
+			# if(not self.targeting): point = [randint(0,9), randint(0,9)];
+			# else: point = self.targeting.next_move();
+			# self.game.attack(point, self);
 			# print("{} attacked at [{},{}]".format(self.name, point[0], point[1]));
+###
+
+
+	# ——————————————————————————————————————————————————  TARGETING —————————————————————————————————————————————————— #
+
+	def direction(self):
+		return [-1, 1][self._direction];
 
 
 
