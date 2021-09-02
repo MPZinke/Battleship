@@ -15,7 +15,7 @@
 	<p> The above shows the data I collected in my investigation of the linear theory of battleship.  
 	Use the checkboxes to select which Matrices you want to look at, where B is the base probabilities and W is the information matrix. 
 	Use the radio buttons to select which probability field you want to look at, A: All, C: Carrier, B: Battleship, S: Sub, D: Destroyer, P: Patrol Boat. 
-        Click on the square array to set the information.  
+		Click on the square array to set the information.  
 	Left clicking will cycle through [None, O: Miss, X: Hit], 
 	while shift-left clicking will cycle through [C: Carrier hit, B: Battleship hit, S: Sub hit, D: Destroyer hit, P: Patrol boat hit, X: Unknown ship hit ].  </p>
 
@@ -65,10 +65,10 @@ This is where the data goes, you don't seem to have support of the canvas tag.
 
 // INITIALIZE DATA AND GRAB CANVASES
 data = new Array(100);
-for (var i = 0; i <100; i++) { data[i] = 0; }
+for(var i = 0; i <100; i++) { data[i] = 0; }
 
 info = new Array(100);
-for (var i = 0; i <100; i++) { info[i] = 0; }
+for(var i = 0; i <100; i++) { info[i] = 0; }
 
 size = 50;
 bord = 2;
@@ -79,7 +79,8 @@ var scale = document.getElementById('scale');
 var scale_ctx = scale.getContext("2d");
 
 //DRAW GRADIENT SCALE
-for (var j=0; j<100; j++) {
+for(var j=0; j<100; j++)
+{
 	percent = j/100.0;
 	
 	scale_ctx.fillStyle = color(percent,1,0);
@@ -87,13 +88,15 @@ for (var j=0; j<100; j++) {
 }
 
 //FUNCTION TO DRAW SCALE
-function draw_scale(minimum,maximum) {
+function draw_scale(minimum,maximum)
+{
 	scale_ctx.clearRect(0,30,550,20);
 	scale_ctx.font = "bold 10px monospace";
 	scale_ctx.fillStyle = "black";
 
 
-	for (var i=0; i<6; i++) {
+	for(var i=0; i<6; i++)
+	{
 		num = (100* ( minimum + (0.2*i)*(maximum-minimum) ) ).toFixed(0)
 		scale_ctx.fillText( num, 15+100*i, 45);
 	}	
@@ -106,45 +109,53 @@ canvas.addEventListener("click",boxClicked, false);
 
 
 //color function
-function color(num,maximum,minimum) {
-    scale = 1/(maximum-minimum);
-    num = (num-minimum)*scale;
-    var power = 0.5;
+function color(num,maximum,minimum)
+{
+	scale = 1/(maximum-minimum);
+	num = (num-minimum)*scale;
+	var power = 0.5;
 
-    return 'hsl(' + Math.floor( (160*Math.pow(num,power)+240)%360 ) + ',100%,' + Math.floor(65*Math.pow(num,power)+10) + '%)'
-    // return 'hsl(' + Math.floor( (160*num+240)%360 ) + ',100%,' + Math.floor(65*(num)+10) + '%)'
+	return 'hsl(' + Math.floor( (160*Math.pow(num,power)+240)%360 ) + ',100%,' + Math.floor(65*Math.pow(num,power)+10) + '%)'
+	// return 'hsl(' + Math.floor( (160*num+240)%360 ) + ',100%,' + Math.floor(65*(num)+10) + '%)'
 };
 
 
 
 
 
-function color_BuRd(num,maximum,minimum) {
-    scale = 1/(maximum-minimum);
-    num = (num-minimum)*scale;
-    return 'rgb(' + Math.floor(num*255) + ',50,' + Math.floor((1-num)*255) + ')';
+function color_BuRd(num,maximum,minimum)
+{
+	scale = 1/(maximum-minimum);
+	num = (num-minimum)*scale;
+	return 'rgb(' + Math.floor(num*255) + ',50,' + Math.floor((1-num)*255) + ')';
 }
 
 
-function color_BGR(num,maximum,minimum) {
-    scale = 1/(maximum-minimum);
-    num = (num-minimum)*scale;
-    if (num < 0.5) {
-        return 'rgb(0,' + Math.floor(num*510) + ',' + Math.floor((0.5-num)*510) + ')'
-    }
-    else {
-        return 'rgb(' + Math.floor((num-0.5)*510) + ',' + Math.floor((1-num)*510) + ', 0 )'
-    }
+function color_BGR(num,maximum,minimum)
+{
+	scale = 1/(maximum-minimum);
+	num = (num-minimum)*scale;
+	if(num < 0.5)
+	{
+		return 'rgb(0,' + Math.floor(num*510) + ',' + Math.floor((0.5-num)*510) + ')'
+	}
+	else
+	{
+		return 'rgb(' + Math.floor((num-0.5)*510) + ',' + Math.floor((1-num)*510) + ', 0 )'
+	}
 };
 
-function color_old(num,maximum,minimum) {
-    scale = 1/scale;
-    if (num > 0) {
-        return 'rgb(' + Math.floor(num*255*scale) + ',0, 0 )'
-    }
-    else {
-        return 'rgb( 0, 0,' + Math.floor(-num*510*scale) + ')'
-    }
+function color_old(num,maximum,minimum)
+{
+	scale = 1/scale;
+	if(num > 0)
+	{
+		return 'rgb(' + Math.floor(num*255*scale) + ',0, 0 )'
+	}
+	else
+	{
+		return 'rgb( 0, 0,' + Math.floor(-num*510*scale) + ')'
+	}
 };
 
 
@@ -154,122 +165,144 @@ function Mod(X, Y) { return X - Math.floor(X/Y)*Y };
 function Div(X, Y) { return Math.floor(X/Y)  };
 
 // helper array functions
-Array.max = function( array ){
-    return Math.max.apply(Math, array);
+Array.max = function( array )
+{
+	return Math.max.apply(Math, array);
 };
-Array.min = function( array ){
-    return Math.min.apply( Math, array );
-};
-
-
-function draw_coord( i , j , val, scale, minimum ) {
-    // draw inside the array at i,j, val with max and min
-    ctx.fillStyle = color(val, scale, minimum);
-    
-    topLeftCornerX = (size+bord)*i+bord;
-    topLeftCornerY = (size+bord)*j+bord;
-    
-    ctx.fillRect(topLeftCornerX,topLeftCornerY,size,size);
-
+Array.min = function( array )
+{
+	return Math.min.apply( Math, array );
 };
 
 
-function text_ind( ind, text ) {
-    // put text at ind ind
-    i = Div(ind,10);
-    j = Mod(ind,10);
-    offset = 10;
-    topLeftCornerX = (size+bord)*i+bord + offset;
-    topLeftCornerY = (size+bord)*j+bord;
-    
-    ctx.fillStyle = '#fff';
-    ctx.font = "bold 50px Courier";
-    ctx.textBaseline = "top";
-    ctx.fillText(text, topLeftCornerX,topLeftCornerY);
+function draw_coord( i , j , val, scale, minimum )
+{
+	// draw inside the array at i,j, val with max and min
+	ctx.fillStyle = color(val, scale, minimum);
+	
+	topLeftCornerX = (size+bord)*i+bord;
+	topLeftCornerY = (size+bord)*j+bord;
+	
+	ctx.fillRect(topLeftCornerX,topLeftCornerY,size,size);
+
+};
+
+
+function text_ind( ind, text )
+{
+	// put text at ind ind
+	i = Div(ind,10);
+	j = Mod(ind,10);
+	offset = 10;
+	topLeftCornerX = (size+bord)*i+bord + offset;
+	topLeftCornerY = (size+bord)*j+bord;
+	
+	ctx.fillStyle = '#fff';
+	ctx.font = "bold 50px Courier";
+	ctx.textBaseline = "top";
+	ctx.fillText(text, topLeftCornerX,topLeftCornerY);
 };
 
 
 info_letter = ['','O','C','B','S','D','P','X']
 
-function draw_info(info) {
-    // draw information on array    
-    for (var i=0; i<100; i++) {
-        text_ind(i,info_letter[info[i]]);
-    }
+function draw_info(info)
+{
+	// draw information on array	
+	for(var i=0; i<100; i++)
+	{
+		text_ind(i,info_letter[info[i]]);
+	}
 }
 
 
-function draw_data( data ) {
-    // draw the data array - heat map
-    maximum = Array.max(data);
-    minimum = Array.min(data);
-    draw_scale(minimum,maximum);
-    for (var k = 0; k < 100; k++ ) {
-        i = Div(k,10);
-        j = Mod(k,10);
-        draw_coord(i,j,data[k],maximum,minimum);        
-    };
+function draw_data( data )
+{
+	// draw the data array - heat map
+	maximum = Array.max(data);
+	minimum = Array.min(data);
+	draw_scale(minimum,maximum);
+	for(var k = 0; k < 100; k++ )
+	{
+		i = Div(k,10);
+		j = Mod(k,10);
+		draw_coord(i,j,data[k],maximum,minimum);		
+	};
 }
 
 
 
-function getCursorPosition(e) {
-    var x;
-    var y;
-    if (e.pageX != undefined && e.pageY != undefined) {
-        x = e.pageX;
-        y = e.pageY;
-    }
-    else {
-        x = e.clickX + document.body.scrollLeft + document.documentElement.scrollLeft;
-        y = e.clickY + document.body.scrollTop + document.documentElement.scrollTop;
-    }
-    
-    x -= canvas.offsetLeft;
-    y -= canvas.offsetTop;
-    
-    var ind = Div(y-bord,bord+size) + 10*Div(x-bord,bord+size)
-    
-    return ind
+function getCursorPosition(e)
+{
+	var x;
+	var y;
+	if(e.pageX != undefined && e.pageY != undefined)
+	{
+		x = e.pageX;
+		y = e.pageY;
+	}
+	else
+	{
+		x = e.clickX + document.body.scrollLeft + document.documentElement.scrollLeft;
+		y = e.clickY + document.body.scrollTop + document.documentElement.scrollTop;
+	}
+	
+	x -= canvas.offsetLeft;
+	y -= canvas.offsetTop;
+	
+	var ind = Div(y-bord,bord+size) + 10*Div(x-bord,bord+size)
+	
+	return ind
 }
 
 
-function cycle_cell(cell) {
-	if (window.info[cell] == 7){
+function cycle_cell(cell)
+{
+	if(window.info[cell] == 7)
+	{
 		window.info[cell] = 1;
 	}	
 	window.info[cell] = (window.info[cell] + 1)%8
-    
+	
 }
 
-function left_cycle_cell(cell){
-   if (window.info[cell] == 0) {
-	window.info[cell] = 1;
-   }
-   else if (window.info[cell] >= 1 && window.info[cell] < 7) {
-	   window.info[cell] = 7;
-   }
-   else {
-	window.info[cell] = 0;
-   }
-}
-
-
-function boxClicked(e) {
-    var cell = getCursorPosition(e);
-
-    if (e.shiftKey){
-	    cycle_cell(cell);
-    }
-    else {
-	    left_cycle_cell(cell);
-    }
-    update_graph();
+function left_cycle_cell(cell)
+{
+	if(window.info[cell] == 0)
+	{
+		window.info[cell] = 1;
+	}
+	else if(window.info[cell] >= 1 && window.info[cell] < 7)
+	{
+		window.info[cell] = 7;
+	}
+	else
+	{
+		window.info[cell] = 0;
+	}
 }
 
 
-function clear_info() {
-	for (var i=0; i<100; i++) {
+function boxClicked(e)
+{
+	var cell = getCursorPosition(e);
+
+	if(e.shiftKey)
+	{
+		cycle_cell(cell);
+	}
+	else
+	{
+		left_cycle_cell(cell);
+	}
+	update_graph();
+}
+
+
+function clear_info()
+{
+	for(var i=0; i<100; i++)
+	{
 		window.info[i] = 0;
 	}
 	update_graph();
@@ -280,115 +313,149 @@ function clear_info() {
 
 
 
-function get_out() {
-    len = document.outForm.out.length;
-    chosen = -1;
-    for (var i=0; i< len; i++ ){
-        if (document.outForm.out[i].checked) {
-            chosen = document.outForm.out[i].value;
-            
-        }
-    }
-    return chosen;
+function get_out()
+{
+	len = document.outForm.out.length;
+	chosen = -1;
+	for(var i=0; i< len; i++ )
+	{
+		if(document.outForm.out[i].checked)
+		{
+			chosen = document.outForm.out[i].value;
+			
+		}
+	}
+	return chosen;
 }
 
-function fill_data_B(ind) {
-    Bdata = new Array(100);
-    for (var i=0; i<100; i++){
-        Bdata[i] = 0;
-    }
-    if (ind < 0) {
-        for (var k=0; k<5; k++ ){
-            for (var i=0; i<100; i++) {
-                Bdata[i] = Bdata[i] +  B[k][i];
-            }
-        }
-    }
-    else {
-        Bdata = B[ind];
-    }
-    return Bdata
+function fill_data_B(ind)
+{
+	Bdata = new Array(100);
+	for(var i=0; i<100; i++)
+	{
+		Bdata[i] = 0;
+	}
+	if(ind < 0)
+	{
+		for(var k=0; k<5; k++ )
+		{
+			for(var i=0; i<100; i++)
+			{
+				Bdata[i] = Bdata[i] +  B[k][i];
+			}
+		}
+	}
+	else
+	{
+		Bdata = B[ind];
+	}
+	return Bdata
 };
 
 
 
-function fill_data_W(info,ind) {
-    Wdata = new Array(100);
-    for (var i =0; i<100; i++) {
-        Wdata[i] = 0;
-    }
-    
-    for (var i=0; i<100; i++) {
-        if (info[i] == 7) {
-            if (ind<0) {
-                for (var s = 0; s < 5; s++) {
-                    for (var k=0; k<100; k++) {
-                        for (var m=0; m<5; m++) {
-                            Wdata[k] = Wdata[k] + W[s+1][i][m][k];
-                        }
-                    }
-                }
-            }
-            else {
-                for (var s = 0; s < 5; s++) {
-                    for (var k=0; k<100; k++) {
-                        Wdata[k] = Wdata[k] + W[s+1][i][ind][k];
-                    }
-                }
-	    }
-        }
-        else if (info[i] > 0) {
-            if (ind<0) {
-                for (var k =0; k<100; k++) {
-		    for (var m=0; m<5; m++) {
-			if (info[i]-2 != m) { //So that ship info doesn't count as hit
-                            Wdata[k] = Wdata[k] + W[info[i]-1][i][m][k];
-			}
-                    }
-		}
-            }
-            else {
-                for (var k =0; k<100; k++) {
-                    Wdata[k] = Wdata[k] + W[info[i]-1][i][ind][k];
-                }
-            }
-        }
-    }
-    return Wdata;
-}
-
-
-function fill_data(info,ind) {
-    data = new Array(100);
-    for (var i =0; i<100; i++) {
-        data[i] = 0;
-    }
-    
-    if (document.turnonoff.B.checked){
-        Bdata = fill_data_B(ind);
-        for (var i=0; i<100; i++) {
-            data[i] = data[i] + Bdata[i];
-        }
-    }
-    
-    if (document.turnonoff.W.checked){
-	Wdata = fill_data_W(info,ind);
+function fill_data_W(info,ind)
+{
+	Wdata = new Array(100);
+	for(var i =0; i<100; i++)
+	{
+		Wdata[i] = 0;
+	}
 	
-        for (var i=0; i<100; i++) {
-            data[i] = data[i] + Wdata[i];
-        }
-    }
-
-    
-
-    return data;
+	for(var i=0; i<100; i++)
+	{
+		if(info[i] == 7)
+		{
+			if(ind<0)
+			{
+				for(var s = 0; s < 5; s++)
+				{
+					for(var k=0; k<100; k++)
+					{
+						for(var m=0; m<5; m++)
+						{
+							Wdata[k] = Wdata[k] + W[s+1][i][m][k];
+						}
+					}
+				}
+			}
+			else
+			{
+				for(var s = 0; s < 5; s++)
+				{
+					for(var k=0; k<100; k++)
+					{
+						Wdata[k] = Wdata[k] + W[s+1][i][ind][k];
+					}
+				}
+		}
+		}
+		else if(info[i] > 0)
+		{
+			if(ind<0)
+			{
+				for(var k =0; k<100; k++)
+				{
+					for(var m=0; m<5; m++)
+					{
+						if(info[i]-2 != m)
+						{ //So that ship info doesn't count as hit
+							Wdata[k] = Wdata[k] + W[info[i]-1][i][m][k];
+						}
+					}
+				}
+			}
+			else
+			{
+				for(var k =0; k<100; k++)
+				{
+					Wdata[k] = Wdata[k] + W[info[i]-1][i][ind][k];
+				}
+			}
+		}
+	}
+	return Wdata;
 }
 
-function update_graph() {
-    data = fill_data(info,get_out());
 
-    draw_data(data);
-    draw_info(info);
+function fill_data(info,ind)
+{
+	data = new Array(100);
+	for(var i =0; i<100; i++)
+	{
+		data[i] = 0;
+	}
+	
+	if(document.turnonoff.B.checked)
+	{
+		Bdata = fill_data_B(ind);
+		for(var i=0; i<100; i++)
+		{
+			data[i] = data[i] + Bdata[i];
+		}
+	}
+	
+	if(document.turnonoff.W.checked)
+	{
+		Wdata = fill_data_W(info,ind);
+	
+		for(var i=0; i<100; i++)
+		{
+			data[i] = data[i] + Wdata[i];
+		}
+	}
+
+	
+
+	return data;
+}
+
+function update_graph()
+{
+	data = fill_data(info,get_out());
+
+	draw_data(data);
+	draw_info(info);
 };
 
 
@@ -397,8 +464,9 @@ function update_graph() {
 
 <script type="text/javascript">
 /*
-for (var i=0; i<100; i++){
-    data[i] = 2*Math.random() - 1;
+for(var i=0; i<100; i++)
+{
+	data[i] = 2*Math.random() - 1;
 }
 */
 
@@ -419,24 +487,24 @@ Brought to you by <a href="https://web.archive.org/web/20201107224221/http://the
 <!--
 TODO:
 
-    need to make the scale on the side.  Should be done?  
-    
-    INFO:
-        0 - Nothing
-        1 - Miss
-        2 - 6 : C B S D P 
-        7: HIT
+	need to make the scale on the side.  Should be done?  
+	
+	INFO:
+		0 - Nothing
+		1 - Miss
+		2 - 6 : C B S D P 
+		7: HIT
 
 -->
 
 
 <!--
-     FILE ARCHIVED ON 22:42:21 Nov 07, 2020 AND RETRIEVED FROM THE
-     INTERNET ARCHIVE ON 02:25:14 Sep 02, 2021.
-     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+	 FILE ARCHIVED ON 22:42:21 Nov 07, 2020 AND RETRIEVED FROM THE
+	 INTERNET ARCHIVE ON 02:25:14 Sep 02, 2021.
+	 JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
 
-     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
-     SECTION 108(a)(3)).
+	 ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+	 SECTION 108(a)(3)).
 -->
 <!--
 playback timings (ms):
