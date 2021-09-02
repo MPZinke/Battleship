@@ -46,18 +46,15 @@ class Game:
 	def attack(self, point, attacker):
 		opponent = self.opposing_player_for_turn();
 		shot_ship = opponent.shot(point);
-		shot_type = Game.HIT if shot_ship else Game.MISS;
-		attacker.shoot_at_enemy(point, shot_type);
 		if(shot_ship): 
 			print("{} HIT {}'s {} at [{},{}]".format(attacker.name, opponent.name, shot_ship.name, *point));  #TESTING
 			self.window.update_hit(point, attacker, shot_ship.id, shot_ship.start_offset(point));
 			if(shot_ship.is_sunk()): self.window.mark_players_ship_as_sunk(attacker, shot_ship.id);
 		else:
-
 			print("{} MISSED at point [{},{}]".format(attacker.name, *point));
 			self.window.update_miss(self.current_player_number, point);
 
-		return shot_ship.location.points if shot_ship else [];
+		return shot_ship;
 
 
 	def sunk_ship_for_players_opponent_at_point(self, player, point):
